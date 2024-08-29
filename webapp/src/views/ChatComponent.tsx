@@ -8,7 +8,6 @@ import SideMenu from '../component/SideMenu';
 import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
-import { Spinner } from '../component/Spinner';
 
 /**
  * 
