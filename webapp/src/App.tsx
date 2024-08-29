@@ -4,7 +4,18 @@ import ChatComponent from './views/ChatComponent';
 function App() {
   return (
         <div>
-          <ToastContainer/>
+           <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                className="z-50"
+            />
           <ChatComponent/>
     </div>
   );

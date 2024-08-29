@@ -1,9 +1,9 @@
-import React, { CSSProperties, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, FC, useEffect, useRef, useState } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { Prism as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
-
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for styling
 import SideMenu from '../component/SideMenu';
 import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
@@ -70,6 +70,48 @@ interface Message {
 
 const baseURL = "http://localhost:8000";
 
+interface ChatMessagesProps {
+    messages: Message[]
+    markdownComponents: Components
+}
+
+
+const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdownComponents }) => {
+    const messageListRef = useRef<HTMLDivElement>(null);
+
+    const renderMessage = (message: Message, index: number) => (
+        <div
+            key={index}
+            className={`flex flex-col ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
+        >
+            {message.role !== 'user' && (
+                <div className='mb-4'>
+                    <img src={userAssistant} alt="User" className="w-8 h-8 rounded-full"></img>
+                </div>
+            )}
+
+            <div
+                className={`p-3 ${message.role === 'user'
+                    ? 'flex max-w-max bg-gray-200 text-black rounded-2xl top-0'
+                    : 'bg-white text-gray-500 rounded-lg'
+                    }`}
+            >
+                {message.role === 'user' ? (
+                    message.content.replace(/\n/g, '\\n')
+                ) : (
+                    <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
+                )}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col p-4 space-y-4 justify-items-end" ref={messageListRef}>
+            {messages.map(renderMessage)}
+        </div>
+    );
+});
+
 const ChatComponent: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -84,7 +126,6 @@ const ChatComponent: React.FC = () => {
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
-
 
     const handleSubmit = async (event?: React.FormEvent<HTMLFormElement | KeyboardEvent | HTMLTextAreaElement>, inputMessage?: string) => {
         event?.preventDefault();
@@ -236,7 +277,7 @@ const ChatComponent: React.FC = () => {
                 </code>
             );
         },
-        pre: ({ children }) => <pre className=" rounded  my-2 whitespace-pre-wrap">{children}</pre>,
+        pre: ({ children }) => <pre className="rounded  whitespace-pre-wrap">{children}</pre>,
         a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
         blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
         hr: () => <hr className="my-4 border-t border-gray-300" />,
@@ -254,9 +295,10 @@ const ChatComponent: React.FC = () => {
         handleSubmit(undefined, messageContent);
     };
 
+
     return (
         <div className="flex flex-col h-screen bg-[#f5f6f7]  transition-all duration-300 overflow-y-auto">
-            {/* <ToastContainer /> */}
+
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Takes the left side */}
                 <SideMenu
@@ -267,7 +309,7 @@ const ChatComponent: React.FC = () => {
                 />
 
                 {/* Takes the right full side */}
-                <div className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
+                <main className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
 
                     <div className="flex w-full flex-col">
                         <div className={`flex justify-center text-[32px] ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
@@ -279,63 +321,17 @@ const ChatComponent: React.FC = () => {
                         <div className={`font-semibold text-[32px] text-center ${messages.length > 0 ? 'hidden' : 'block'} `}>Unlocking the Potential of Organizational Wisdom</div>
 
                         {/* Fix this to show columns cleanly on small devices */}
-                        <div className={`text-black md:w-[900px] p-4  ${messages.length > 0 ? 'hidden' : 'block'} flex flex-col justify-center my-auto mx-auto w-full font-semibold text-2xl mt-10`}>
-                            {/* Section for Executives */}
-                            <div className="text-black font-medium text-2xl mb-4">For Executive</div>
-                            {/* Section for Employees */}
-                            {/* <div className="text-black font-medium text-2xl mt-6 mb-4">For Employees</div> */}
 
-                            <div className="flex flex-col md:flex-row gap-4 w-full justify-around font-bold ">
-                                <button
-                                    className="w-full p-4 md:p-10  text-2xl shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
-                                    onClick={() => handleSubmitCustom('Market Trends and Competitive Analysis: AI use case in organization lost knowledge due to employee getting fired or quitting and its impact on long growth to the organzation')}
-                                >
-                                    <div className="text-black text-sm text-center">Market Trends and Competitive Analysis</div>
-                                </button>
-                                <button
-                                    className="w-full p-4 md:p-10 shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
-                                    onClick={() => handleSubmitCustom('Strategic Goals and Business Objectives')}
-                                >
-                                    <div className="text-black text-sm text-center">Strategic Goals and Business Objectives</div>
-                                </button>
-                                <button
-                                    className="w-full p-4 md:p-10 shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
-                                    onClick={() => handleSubmitCustom('Organizational Structure and Key Team Profiles')}
-                                >
-                                    <div className="text-black text-sm text-center">Organizational Structure and Key Team Profiles</div>
-                                </button>
-                            </div>
-                        </div>
+                        <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
 
-                        <div className={`flex flex-col justify-start flex-grow w-full md:w-[900px] mx-auto pb-20 overflow-auto`}>
+                        <div className={`flex flex-1 w-full md:w-[900px] mx-auto pb-20 overflow-hidden`}>
                             <div className="flex  flex-col p-4 space-y-4 justify-items-end ">
-                                {messages.map((message, index) => (
-                                    <div
-                                        key={index}
-                                        className={`flex flex-col ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
-                                    >
-                                        {message.role !== 'user' && (
-                                            <div className='mb-4'>
-                                                <img src={userAssistant} alt="User" className="w-8 h-8 rounded-full"></img>
-                                            </div>
-                                        )}
-
-                                        <div
-                                            className={`p-3 ${message.role === 'user'
-                                                ? 'flex max-w-max bg-gray-200 text-black rounded-2xl top-0'
-                                                : 'bg-white text-gray-500 rounded-lg'
-                                                }`}
-                                        >
-                                            {message.role === 'user' ? (
-                                                message.content.replace(/\n/g, '\\n')
-                                            ) : (
-                                                <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
+                                <ChatMessages messages={messages} markdownComponents={markdownComponents} />
                                 <div ref={messagesEndRef} />
+
+
                             </div>
+
                         </div>
 
                         <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-0 p-4`}>
@@ -387,10 +383,46 @@ const ChatComponent: React.FC = () => {
                             </form>
                         </div>
                     </div>
-                </div>
+                </main>
             </div>
         </div>
     );
 };
 
 export default ChatComponent;
+
+interface CallToActionItemsProps {
+    messages: Message[];
+    handleSubmitCustom: (messageContent: string) => void
+}
+
+const CallToActionItems: FC<CallToActionItemsProps> = ({ messages, handleSubmitCustom }) => {
+
+    return <div className={`text-black md:w-[900px] p-4  ${messages.length > 0 ? 'hidden' : 'block'} flex flex-col justify-center my-auto mx-auto w-full font-semibold text-2xl mt-10`}>
+        {/* Section for Executives */}
+        <div className="text-black font-medium text-2xl mb-4">For Executive</div>
+
+        {/* Section for Employees */}
+        <div className="flex flex-col md:flex-row gap-4 w-full justify-around font-bold ">
+            <button
+                className="w-full p-4 md:p-10  text-2xl shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
+                onClick={() => handleSubmitCustom('Market Trends and Competitive Analysis: AI use case in organization lost knowledge due to employee getting fired or quitting and its impact on long growth to the organzation')}
+            >
+                <div className="text-black text-sm text-center">Market Trends and Competitive Analysis</div>
+            </button>
+            <button
+                className="w-full p-4 md:p-10 shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
+                onClick={() => handleSubmitCustom('Strategic Goals and Business Objectives')}
+            >
+                <div className="text-black text-sm text-center">Strategic Goals and Business Objectives</div>
+            </button>
+            <button
+                className="w-full p-4 md:p-10 shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
+                onClick={() => handleSubmitCustom('Organizational Structure and Key Team Profiles')}
+            >
+                <div className="text-black text-sm text-center">Organizational Structure and Key Team Profiles</div>
+            </button>
+        </div>
+    </div>;
+}
+
