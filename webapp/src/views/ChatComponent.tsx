@@ -8,6 +8,7 @@ import SideMenu from '../component/SideMenu';
 import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
+import { Spinner } from '../component/Spinner';
 
 /**
  * 
@@ -74,43 +75,6 @@ interface ChatMessagesProps {
     messages: Message[]
     markdownComponents: Components
 }
-
-
-const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdownComponents }) => {
-    const messageListRef = useRef<HTMLDivElement>(null);
-
-    const renderMessage = (message: Message, index: number) => (
-        <div
-            key={index}
-            className={`flex flex-col ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
-        >
-            {message.role !== 'user' && (
-                <div className='mb-4'>
-                    <img src={userAssistant} alt="User" className="w-8 h-8 rounded-full"></img>
-                </div>
-            )}
-
-            <div
-                className={`p-3 ${message.role === 'user'
-                    ? 'flex max-w-max bg-gray-200 text-black rounded-2xl top-0'
-                    : 'bg-white text-gray-500 rounded-lg'
-                    }`}
-            >
-                {message.role === 'user' ? (
-                    message.content.replace(/\n/g, '\\n')
-                ) : (
-                    <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
-                )}
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="flex flex-col p-4 space-y-4 justify-items-end" ref={messageListRef}>
-            {messages.map(renderMessage)}
-        </div>
-    );
-});
 
 const ChatComponent: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -335,12 +299,12 @@ const ChatComponent: React.FC = () => {
                         </div>
 
                         <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-0 p-4`}>
-                            <form onSubmit={handleSubmit} className="flex space-x-4 shadow-md bg-white rounded-2xl justify-center w-full  md:w-[900px] p-4">
+                            <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-white rounded-2xl justify-center w-full  md:w-[900px] p-4">
                                 <button
                                     type="submit"
                                     className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading
                                         ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-gray-400 hover:bg-gray-600'
+                                        : ' hover:bg-gray-200'
                                         }`}
                                     disabled={isLoading}
                                 >
@@ -372,13 +336,14 @@ const ChatComponent: React.FC = () => {
                                 />
                                 <button
                                     type="submit"
-                                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading
-                                        ? 'bg-gray-400 cursor-not-allowed animate-spin mr-2'
-                                        : 'bg-gray-400 hover:bg-gray-600'
+                                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading 
+                                        ? ' bg-gray-400  cursor-not-allowed animate-spin mr-2'
+                                        : ' hover:bg-gray-200'
                                         }`}
                                     disabled={isLoading}
-                                >
-                                    <img src={sendMessage} className='w-4' />
+                                >   
+                                    {isLoading && <img src={sendMessage} className='w-4' />}
+                                    {inputValue && <img src={sendMessage} className='w-4' />}
                                 </button>
                             </form>
                         </div>
@@ -395,6 +360,43 @@ interface CallToActionItemsProps {
     messages: Message[];
     handleSubmitCustom: (messageContent: string) => void
 }
+
+
+const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdownComponents }) => {
+    const messageListRef = useRef<HTMLDivElement>(null);
+
+    const renderMessage = (message: Message, index: number) => (
+        <div
+            key={index}
+            className={`flex flex-col ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
+        >
+            {message.role !== 'user' && (
+                <div className='mb-4'>
+                    <img src={userAssistant} alt="User" className="w-8 h-8 rounded-full"></img>
+                </div>
+            )}
+
+            <div
+                className={`p-3 ${message.role === 'user'
+                    ? 'flex max-w-max bg-gray-200 text-black rounded-2xl top-0'
+                    : 'bg-white text-gray-500 rounded-lg'
+                    }`}
+            >
+                {message.role === 'user' ? (
+                    message.content.replace(/\n/g, '\\n')
+                ) : (
+                    <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
+                )}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col p-4 space-y-4 justify-items-end" ref={messageListRef}>
+            {messages.map(renderMessage)}
+        </div>
+    );
+});
 
 const CallToActionItems: FC<CallToActionItemsProps> = ({ messages, handleSubmitCustom }) => {
 
