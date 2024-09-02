@@ -10,35 +10,6 @@ import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
 
 
-// CopyButtonProps interface to handle copy button properties
-// interface CopyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-//   codeContent: string;
-// }
-
-// CopyButton Component
-// const CopyButton: React.FC<CopyButtonProps> = ({ codeContent, ...props }) => {
-//   const [copied, setCopied] = useState(false);
-
-//   const handleCopy = () => {
-//     navigator.clipboard.writeText(codeContent).then(() => {
-//       setCopied(true);
-//       setTimeout(() => setCopied(false), 2000);
-//     });
-//   };
-
-//   return (
-//     <button
-//       type="button"
-//       className={`${copied ? 'bg-green-500' : 'bg-gray-200'} 
-//       hover:bg-gray-300 text-black px-2 py-1 rounded ml-2`}
-//       onClick={handleCopy}
-//       {...props}
-//     >
-//       {copied ? 'Copied!' : 'Copy'}
-//     </button>
-//   );
-// };
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -60,6 +31,8 @@ const ChatComponent: React.FC = () => {
   const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('ollama');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = oneDark;
+
+  console.log(messages)
 
 
   const toggleSidebar = () => {

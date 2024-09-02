@@ -1,0 +1,9 @@
+Flask
+Flask-CORS
+pymongo
+pydantic
+Flask-Bcrypt
+Flask-JWT-Extended
+hypercorn
+anthropic[bedrock]
+ollama
