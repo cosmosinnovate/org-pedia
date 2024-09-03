@@ -7,3 +7,12 @@ Flask-JWT-Extended
 hypercorn
 anthropic[bedrock]
 ollama
+Flask[async]
+flask_APScheduler==1.13.1
+openai==1.37.1
+pinecone-client
+python-dotenv==1.0.1
+hypercorn
+Requests==2.32.3
+urllib3==2.2.2
+numpy

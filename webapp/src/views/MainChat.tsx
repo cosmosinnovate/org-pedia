@@ -22,7 +22,7 @@ interface ChatMessagesProps {
   markdownComponents: Components
 }
 
-const ChatComponent: React.FC = () => {
+const MainChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -168,7 +168,7 @@ const ChatComponent: React.FC = () => {
     h2: ({ children }) => <h2 className="text-xl font-bold mb-2">{children}</h2>,
     h3: ({ children }) => <h3 className="text-lg font-bold mb-2">{children}</h3>,
     ul: ({ children }) => <ul className="list-disc list-inside mb-2">{children}</ul>,
-    ol: ({ children }) => <ol className="list-decimal list-inside mb-2">{children}</ol>,
+    ol: ({ children }) => <ol className="list-decimal list-inside">{children}</ol>,
     li: ({ children }) => <li className="mb-1">{children}</li>,
   
     code: ({ className, children, ...props }) => {
@@ -189,7 +189,7 @@ const ChatComponent: React.FC = () => {
         </code>
       );
     },
-    pre: ({ children }) => <pre className="rounded whitespace-pre-wrap bg-gray-50 p-2 my-2">{children}</pre>,
+    pre: ({ children }) => <pre className="rounded whitespace-pre-wrap">{children}</pre>,
     a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
     blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
     hr: () => <hr className="my-4 border-t border-gray-300" />,
@@ -223,7 +223,7 @@ const ChatComponent: React.FC = () => {
 
 
   return (
-    <div className="flex flex-col h-screen bg-[#f5f6f7]  transition-all duration-300 overflow-y-auto">
+    <div className="flex flex-col h-screen bg-[#fff]  transition-all duration-300 overflow-y-auto">
 
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Takes the left side */}
@@ -235,7 +235,7 @@ const ChatComponent: React.FC = () => {
         />
 
         {/* Takes the right full side */}
-        <main className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
+        <main className={`flex flex-col w-full  items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
 
           <div className="flex w-full flex-col">
             <div className={`flex justify-center text-[32px] ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
@@ -250,16 +250,15 @@ const ChatComponent: React.FC = () => {
 
             <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
 
-            <div className={`flex flex-1 w-full md:w-[900px] mx-auto pb-20 overflow-hidden`}>
+            <div className={`flex flex-1 w-full  mx-auto pb-20 overflow-hidden`}>
               <div className="flex  flex-col space-y-10 justify-items-end overflow-auto">
                 <ChatMessages messages={messages} markdownComponents={markdownComponents} />
                 <div ref={messagesEndRef} />
               </div>
-
             </div>
 
-            <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-0`}>
-              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-white rounded-t-2xl justify-center w-full  md:w-[840px] p-4">
+            <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-6`}>
+              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-[#f5f6f7] rounded-t-xl justify-center w-full  md:w-[840px] p-4">
                 <button
                   type="submit"
                   className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading
@@ -275,8 +274,8 @@ const ChatComponent: React.FC = () => {
                   onChange={(e) => {
                     const newValue = e.target.value;
                     const newLines = newValue.split('\n').length;
-                    const maxLines = 5;
-                    const minHeight = 36;
+                    const maxLines = 3;
+                    const minHeight = 30;
                     const lineHeight = 24;
                     const newHeight = Math.min(newLines * lineHeight, maxLines * lineHeight);
 
@@ -288,7 +287,7 @@ const ChatComponent: React.FC = () => {
                       handleSubmit(e);
                     }
                   }}
-                  className="flex-1 bg-white text-gray-700 focus:outline-none p-2 text-xl"
+                  className="flex-1 bg-[#f5f6f7] text-gray-700 focus:outline-none p-2 text-xl"
                   placeholder="Type your message..."
                   rows={1}
                   style={{ resize: 'none', lineHeight: '24px', minHeight: '36px' }}
@@ -314,7 +313,7 @@ const ChatComponent: React.FC = () => {
   );
 };
 
-export default ChatComponent;
+export default MainChat;
 
 interface CallToActionItemsProps {
   messages: Message[];
@@ -339,9 +338,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdo
       )}
 
       <div
-        className={`p-3 ${message.role === 'user'
-          ? 'flex max-w-max bg-gray-200 text-black rounded-2xl top-0'
-          : 'bg-white text-gray-500 rounded-lg'
+        className={`mb-4 ${message.role === 'user'
+          ? 'flex max-w-max p-3 bg-gray-200 text-black rounded-2xl top-0'
+          : 'text-gray-500 rounded-lg'
           }`}
       >
         {message.role === 'user' ? (
