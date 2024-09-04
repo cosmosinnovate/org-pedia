@@ -9,6 +9,10 @@ import {
 import { ToastContainer } from 'react-toastify';
 import MainChat from './views/MainChat'
 import AccountAccess from './views/AccountAccess';
+import ProtectedRoute from './ProtectedRoute';
+import { Provider } from 'react-redux';
+import { store } from './store';
+
 
 const router = createBrowserRouter([
   {
@@ -17,24 +21,29 @@ const router = createBrowserRouter([
   },
   {
     path: "/chat",
-    element: <MainChat />
-  }
+    element:
+      <ProtectedRoute allowGuest={true}>
+        <MainChat />
+      </ProtectedRoute>
+  },
 ])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ToastContainer
-      position="top-right"
-      autoClose={5000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      className="z-50"
-    />
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        className="z-50"
+      />
+      <RouterProvider router={router} />
+    </Provider>
   </StrictMode>,
 )

@@ -9,6 +9,15 @@ import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
 
+import remarkGfm from 'remark-gfm';
+import { useSelector } from 'react-redux';
+
+import { useAppDispatch } from '../hooks';
+import { auth } from '../firebaseConfig';
+import { setUser, setLoading } from '../features/auth/authSlice';
+import { onAuthStateChanged } from 'firebase/auth';
+import { RootState } from '../store';
+
 
 interface Message {
   role: 'user' | 'assistant';
@@ -32,8 +41,19 @@ const MainChat: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = oneDark;
 
-  console.log(messages)
+  const userData = useSelector((selector: RootState) => selector.auth)
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(setLoading(true));
+    const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
+      dispatch(setUser(userAuth));
+      dispatch(setLoading(false));
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -170,7 +190,7 @@ const MainChat: React.FC = () => {
     ul: ({ children }) => <ul className="list-disc list-inside mb-2">{children}</ul>,
     ol: ({ children }) => <ol className="list-decimal list-inside">{children}</ol>,
     li: ({ children }) => <li className="mb-1">{children}</li>,
-  
+
     code: ({ className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
       const codeContent = String(children).replace(/\n$/, '');
@@ -194,7 +214,7 @@ const MainChat: React.FC = () => {
     blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
     hr: () => <hr className="my-4 border-t border-gray-300" />,
     img: ({ src, alt }) => <img src={src} alt={alt} className="max-w-full h-auto my-2" />,
-    
+
     // Updated table components
     table: ({ children }) => (
       <div className="overflow-x-auto">
@@ -211,7 +231,7 @@ const MainChat: React.FC = () => {
     td: ({ children }) => <td className="border border-gray-300 px-4 py-2">{children}</td>,
     tr: ({ children }) => <tr>{children}</tr>,
   };
-  
+
 
   const handleSelectedChatService = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedChatService(event.target.value as 'ollama' | 'bedrock');
@@ -250,7 +270,7 @@ const MainChat: React.FC = () => {
 
             <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
 
-            <div className={`flex flex-1 w-full  mx-auto pb-20 overflow-hidden`}>
+            <div className={`flex flex-1 w-full md:w-[860px]  mx-auto pb-20 overflow-hidden`}>
               <div className="flex  flex-col space-y-10 justify-items-end overflow-auto">
                 <ChatMessages messages={messages} markdownComponents={markdownComponents} />
                 <div ref={messagesEndRef} />
@@ -320,7 +340,6 @@ interface CallToActionItemsProps {
   handleSubmitCustom: (messageContent: string) => void
 }
 
-import remarkGfm from 'remark-gfm';
 
 
 const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdownComponents }) => {
@@ -346,12 +365,12 @@ const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdo
         {message.role === 'user' ? (
           message.content.replace(/\n/g, '\\n')
         ) : (
-          <ReactMarkdown 
-      remarkPlugins={[remarkGfm]} 
-      components={markdownComponents}
-    >
-      {message.content}
-    </ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
+            {message.content}
+          </ReactMarkdown>
         )}
       </div>
     </div>
