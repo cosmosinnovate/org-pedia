@@ -1,0 +1,17 @@
+-- CREATE DATABASE "org_pedia";
+
+-- DROP TABLE IF EXISTS users;
+
+
+-- CREATE TABLE users (
+--     id SERIAL PRIMARY KEY,
+--     user_id VARCHAR(255) NOT NULL,
+--     display_name VARCHAR(255) NOT NULL,
+--     email VARCHAR(255) UNIQUE NOT NULL,
+--     access_token VARCHAR(255) NOT NULL,
+--     photo_url TEXT
+-- );
+
+
+
+-- SELECT * FROM information_schema.tables WHERE table_name = 'users';

@@ -18,3 +18,19 @@ You must setup python environment and run pip install -r requirements.txt
 - AWS creds
 - Database creds
 - etc
+
+
+
+# Database
+
+## Create and Apply New Migrations
+- After ensuring that the database is up to date, create the new migration for adding the id column:
+
+```bash 
+flask db migrate -m "Add id column to users table
+```
+
+- Then apply this new migration:
+```bash
+flask db upgrade
+```

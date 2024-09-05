@@ -1,7 +1,7 @@
-import React, { CSSProperties, FC, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import { Prism as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for styling
 import SideMenu from '../component/SideMenu';
@@ -9,22 +9,19 @@ import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
 
-import remarkGfm from 'remark-gfm';
-import { useSelector } from 'react-redux';
 
-import { useAppDispatch } from '../hooks';
-import { auth } from '../firebaseConfig';
-import { setUser, setLoading } from '../features/auth/authSlice';
-import { onAuthStateChanged } from 'firebase/auth';
-import { RootState } from '../store';
+import remarkGfm from 'remark-gfm';
+// import { useSelector } from 'react-redux';
+// import { useAppDispatch } from '../hooks';
+// import { setUser, setLoading } from '../features/auth/authSlice';
+import { baseURL } from '../service';
+// import { RootState } from '../store';
 
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
-
-const baseURL = "http://localhost:8000";
 
 interface ChatMessagesProps {
   messages: Message[]
@@ -37,23 +34,31 @@ const MainChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('ollama');
+  const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('bedrock');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = oneDark;
+  const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = vscDarkPlus;
 
-  const userData = useSelector((selector: RootState) => selector.auth)
+  // const userData = useSelector((selector: RootState) => selector.auth)
 
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    dispatch(setLoading(true));
-    const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
-      dispatch(setUser(userAuth));
-      dispatch(setLoading(false));
-    });
+  // useEffect(() => {
+  //   dispatch(setLoading(true));
+  //   // Should check if user is logged in
+  //   // Should check if user is authenticated
+  //   // The user accessToken should be stored in redux on loa
+  //   // Load access token from local storage
+  //   localStorage.getItem('access_token');
+  //   // decode the access token
 
-    return () => unsubscribe();
-  }, [dispatch]);
+  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       dispatch(setUser(user));
+  //       dispatch(setLoading(false));
+  //     }
+
+  //   return () => unsubscribe();
+  // }, [dispatch]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -166,13 +171,13 @@ const MainChat: React.FC = () => {
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [scrollToBottom, messages]);
 
   useEffect(() => {
     return () => {

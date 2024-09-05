@@ -16,3 +16,6 @@ hypercorn
 Requests==2.32.3
 urllib3==2.2.2
 numpy
+google-auth
+Flask-SQLAlchemy
+psycopg2
