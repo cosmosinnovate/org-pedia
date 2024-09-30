@@ -45,7 +45,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ selectedChatService, handleSelected
                 onChange={handleSelectedChatService}
                 className="bg-white border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 my-2 rounded-md w-full"
                 >
-                <option value="bedrock">Bedrock</option>
+                {/* <option value="bedrock">Bedrock</option> */}
                 <option value="ollama">Ollama</option>
               </select>
                 </div>

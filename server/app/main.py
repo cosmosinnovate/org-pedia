@@ -99,6 +99,32 @@ class User(db.Model):
         db.session.commit()
         return True
 
+# TODO: Create ChatHistory model
+# class ChatHistory(db.Model):
+#     # __tablename__ = "chat_history"
+#     """
+#     A chat history model representing the chat history table in the database.
+
+#     Attributes:
+#         id (int): The unique identifier for the chat history.
+#         user_id (str): The user ID of the user who created the chat history.
+        
+#         content (str): The content of the chat history.
+#         model (str): The model used for the chat history.
+#         user (str): The user who created the chat history.
+#         assistant (str): The assistant who responded to the chat history.
+        
+#         created_at (datetime): The timestamp when the chat history was created.
+#         updated_at (datetime): The timestamp when the chat history was last updated.
+
+#     Methods:
+#         __repr__(self): Returns a string representation of the chat history model.
+#         to_dict(self): Returns a dictionary representation of the chat history model.
+#         update_chat_history(chat_history, data): Updates the chat history model with new data.
+#         delete_chat_history(chat_history): Deletes the chat history model.
+#     """
+#     pass
+
 
 def generate_jwt(user: User) -> str:
     access_token = create_access_token(
@@ -185,13 +211,12 @@ def authenticate_google():
 def ollama_chat():
     try:
         messages = request.json.get("messages")
-
         if not isinstance(messages, list):
             messages = [messages]
 
         def generate():
             response = ollama.chat(
-                model="llama3.1",
+                model="codellama",
                 messages=messages,
                 options={"temperature": 0.9, "max_token": 2000},
                 stream=True,
@@ -280,5 +305,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
     app.run(port=8000)

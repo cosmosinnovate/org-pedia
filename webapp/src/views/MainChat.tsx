@@ -34,7 +34,7 @@ const MainChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('bedrock');
+  const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('ollama');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = vscDarkPlus;
 
@@ -187,6 +187,16 @@ const MainChat: React.FC = () => {
     };
   }, []);
 
+  const [copiedCode, setCopiedCode] = useState('');
+
+
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(''), 2000); // Clear after 2 seconds
+    });
+  };
+
   const markdownComponents: Components = {
     p: ({ children }) => <p className="mb-2">{children}</p>,
     h1: ({ children }) => <h1 className="text-2xl font-bold mb-2">{children}</h1>,
@@ -199,25 +209,40 @@ const MainChat: React.FC = () => {
     code: ({ className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
       const codeContent = String(children).replace(/\n$/, '');
+      const language = match ? match[1] : 'text'; // Default to 'text' if no language is found
+
       return match ? (
-        <SyntaxHighlighter
-          style={syntaxStyle}
-          language={match[1]}
-          PreTag="div"
-          {...props}
-        >
-          {codeContent}
-        </SyntaxHighlighter>
+        <div className='relative'>
+          <div className='py-1 px-2 rounded-t-lg font-mono text-xs text-gray-800'>
+            <strong>{language.toUpperCase()}</strong>
+          </div>
+          <SyntaxHighlighter
+            style={syntaxStyle}
+            className="my-2 rounded-lg"
+            language={match[1]}
+            PreTag="div"
+            {...props}
+          >
+            {codeContent}
+          </SyntaxHighlighter>
+          <button
+            onClick={() => copyToClipboard(codeContent)}
+            className=" top-2 right-2 text-xs bg-gray-800 text-white px-2 py-1 rounded hover:bg-gray-700 transition"
+          >
+            {copiedCode === codeContent ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+
       ) : (
-        <code className="my-2 bg-gray-100 px-1 py-0.5 rounded" {...props}>
+        <code className="my-2 bg-gray-100 px-1 py-1 italic rounded-lg" {...props}>
           {children}
         </code>
       );
     },
     pre: ({ children }) => <pre className="rounded whitespace-pre-wrap">{children}</pre>,
     a: ({ href, children }) => <a href={href} className="text-blue-600 hover:underline">{children}</a>,
-    blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
-    hr: () => <hr className="my-4 border-t border-gray-300" />,
+    blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-100 pl-4 italic my-2">{children}</blockquote>,
+    hr: () => <hr className="my-4 border-t border-gray-50" />,
     img: ({ src, alt }) => <img src={src} alt={alt} className="max-w-full h-auto my-2" />,
 
     // Updated table components
@@ -246,9 +271,18 @@ const MainChat: React.FC = () => {
     handleSubmit(undefined, messageContent);
   };
 
+  const handleAbort = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsLoading(false);
+      setInputValue('');
+      toast.error('Request cancelled.');
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-[#fff]  transition-all duration-300 overflow-y-auto">
+    <div className="flex flex-col h-screen transition-all duration-300 overflow-y-auto">
 
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Takes the left side */}
@@ -260,10 +294,10 @@ const MainChat: React.FC = () => {
         />
 
         {/* Takes the right full side */}
-        <main className={`flex flex-col w-full  items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
+        <main className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
 
           <div className="flex w-full flex-col">
-            <div className={`flex justify-center text-[32px] ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
+            <div className={`flex justify-center text-5xl ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
               <span className="text-[#fa6f73]  font-['poppins'] font-bold">Org</span>
               <span className="text-[#a1b3ff]  font-extrabold font-['poppins']">//</span>
               <span className="text-[#a1b3ff]  font-bold ">Pedia</span>
@@ -275,7 +309,7 @@ const MainChat: React.FC = () => {
 
             <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
 
-            <div className={`flex flex-1 w-full md:w-[860px]  mx-auto pb-20 overflow-hidden`}>
+            <div className={`flex flex-1 w-full md:w-[830px]  mx-auto pb-20 overflow-hidden`}>
               <div className="flex  flex-col space-y-10 justify-items-end overflow-auto">
                 <ChatMessages messages={messages} markdownComponents={markdownComponents} />
                 <div ref={messagesEndRef} />
@@ -283,13 +317,10 @@ const MainChat: React.FC = () => {
             </div>
 
             <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-6`}>
-              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-[#f5f6f7] rounded-t-xl justify-center w-full  md:w-[840px] p-4">
+              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-[#F5F5F5] rounded-xl justify-center w-full  md:w-[830px] p-6">
                 <button
                   type="submit"
-                  className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : ' hover:bg-gray-200'
-                    }`}
+                  className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none `}
                   disabled={isLoading}
                 >
                   <img src={uploadFile} alt="File upload" />
@@ -312,23 +343,37 @@ const MainChat: React.FC = () => {
                       handleSubmit(e);
                     }
                   }}
-                  className="flex-1 bg-[#f5f6f7] text-gray-700 focus:outline-none p-2 text-xl"
+                  className="flex-1 bg-[#F5F5F5] text-gray-700 focus:outline-none p-2 text-xl"
                   placeholder="Type your message..."
                   rows={1}
                   style={{ resize: 'none', lineHeight: '24px', minHeight: '36px' }}
                   disabled={isLoading}
                 />
-                <button
-                  type="submit"
-                  className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none  ${isLoading
-                    ? ' bg-gray-400  cursor-not-allowed animate-spin mr-2'
-                    : ' hover:bg-gray-200'
-                    }`}
-                  disabled={isLoading}
-                >
-                  {isLoading && <img src={sendMessage} className='w-4' />}
-                  {inputValue && <img src={sendMessage} className='w-4' />}
-                </button>
+
+                {(abortControllerRef.current && isLoading) && (
+
+                  <button
+                    type="submit"
+                    onClick={(e) => handleAbort(e)}  // Pass the event correctly
+                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading
+                      && 'glowing'}`}
+                  >
+                    <div className="w-4 h-4 bg-black" />
+                  </button>
+                )}
+
+                {!abortControllerRef.current && (
+
+
+                  <button
+                    type="submit"
+                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading
+                      && 'cursor-not-allowed glowing'}`}
+                  >
+                    {inputValue && !isLoading && <img src={sendMessage} className="w-4" />}
+                  </button>
+                )}
+
               </form>
             </div>
           </div>
@@ -356,8 +401,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdo
       className={`flex flex-col ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}
     >
       {message.role !== 'user' && (
-        <div className='mb-4'>
+        <div className='mb-4 flex-col'>
           <img src={userAssistant} alt="User" className="w-8 h-8 rounded-full"></img>
+          {!message.content && <p>Thinking...</p>}
         </div>
       )}
 
@@ -368,7 +414,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdo
           }`}
       >
         {message.role === 'user' ? (
-          message.content.replace(/\n/g, '\\n')
+          message.content
         ) : (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}

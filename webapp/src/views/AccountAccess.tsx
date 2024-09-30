@@ -16,10 +16,10 @@ const AccountAccess = () => {
     const provider = new GoogleAuthProvider();
 
 
-    const signInAsGuest = () => {
-        dispatch(setUser(null)); // Optionally, you might want to clear the user state
-        navigate("/chat");
-    };
+    // const signInAsGuest = () => {
+    //     dispatch(setUser(null)); // Optionally, you might want to clear the user state
+    //     navigate("/chat");
+    // };
 
     const signInWithGoogle = async () => {
         try {
@@ -68,29 +68,30 @@ const AccountAccess = () => {
     };
 
     return (
-        <div className="flex md:flex-row flex-col w-full">
-            <div className="absolute top-0 right-0 w-[60px] h-[10px] bg-blue-500 skew-y-[45deg] translate-x-1/6 -translate-y-1/2"></div>
-            <div className="absolute top-2 right-0.5 w-[10px] h-[10px] bg-blue-500 skew-y-[45deg] translate-x-1/6 -translate-y-1/2"></div>
+        <div className="flex md:flex-row flex-col w-full h-screen">
+            <div className="fixed top-0 right-0 w-[60px] h-[10px] bg-blue-500 skew-y-[45deg] translate-x-1/6 -translate-y-1/2"></div>
+            <div className="fixed top-2 right-0.5 w-[10px] h-[10px] bg-blue-500 skew-y-[45deg] translate-x-1/6 -translate-y-1/2"></div>
 
-            <div className="flex md:flex-1 h-screen bg-black text-white justify-center mx-auto items-center my-auto">
-                <div className="p-4 flex text-center text-4xl text-white w-full justify-center md:w-[500px]">
-                    Welcome to Org//Pedia
+            <div className="flex flex-col bg-gradient-to-b from-[#edf0ff] to-[#f0c6c6] h-full md:h-screen w-full md:flex-1  text-black justify-center mx-auto items-center my-auto">
+            <div className={`flex justify-center text-[32px]  'block'}  mx-auto`}>
+              <span className="text-[#fa6f73]  font-bold">Org</span>
+              <span className="text-[#a1b3ff]  font-extrabold ">//\</span>
+              <span className="text-[#a1b3ff]  font-bold ">Pedia</span>
+            </div>
+                <div className="p-4 font-['Inter'] font flex text-center text-6xl  w-full justify-center font-bold">
+                    Clear data is key to not wasting time!
                 </div>
             </div>
 
-            <div className="flex md:flex-1  h-screen justify-center mx-auto items-center my-auto">
+            <div className="flex w-full h-full md:h-screen b md:flex-1 justify-center mx-auto items-center my-auto">
                 <div className="flex flex-col p-4 w-full items-center space-y-6">
-                    <label className="font-bold font-['poppins'] text-2xl">Access account</label>
+                    <label className="font-bold font-['inter'] text-2xl">Want clear decision making?</label>
 
-                    <button className="flex font-semibold text-center text-xl rounded-xl bg-blue-500 text-gray-50 p-4 w-full md:w-[400px] justify-center" onClick={signInWithGoogle}
+                    <button className="flex font-['inter'] font-medium text-center text-xl rounded-lg bg-blue-500 text-gray-50 p-4 w-full md:w-[400px] justify-center" onClick={signInWithGoogle}
                     >
                         Continue with Google
                     </button>
 
-                    <button className="flex font-semibold cursor-pointer text-center text-xl rounded-xl bg-gray-300 text-black p-4 w-full md:w-[400px] justify-center"
-                        onClick={signInAsGuest}>
-                        Continue as Guest
-                    </button>
                 </div>
 
             </div>
