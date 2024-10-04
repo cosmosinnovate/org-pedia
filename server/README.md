@@ -26,6 +26,17 @@ You must setup python environment and run pip install -r requirements.txt
 ## Create and Apply New Migrations
 - After ensuring that the database is up to date, create the new migration for adding the id column:
 
+- Initial database migration
+
+```
+flask db init  # Initialize migrations (run once)
+flask db migrate -m "Initial migration"  # Create a migration
+flask db upgrade  # Apply the migration
+```
+
+
+
+
 ```bash 
 flask db migrate -m "Add id column to users table
 ```

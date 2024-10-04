@@ -3,7 +3,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface User {
-  id?: number;
+  id?: number | string;
   user_id: string;
   display_name: string;
   email: string;
@@ -21,6 +21,8 @@ const initialState: AuthState = {
   loading: true,
 };
 
+const removeAccessToken = () => localStorage.removeItem("access_token")
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -35,6 +37,7 @@ const authSlice = createSlice({
     logoutUser: (state) => {
       state.user = null;
       state.loading = false;
+      removeAccessToken()
     },
   },
 });

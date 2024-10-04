@@ -15,12 +15,6 @@ const AccountAccess = () => {
     const navigate = useNavigate()
     const provider = new GoogleAuthProvider();
 
-
-    // const signInAsGuest = () => {
-    //     dispatch(setUser(null)); // Optionally, you might want to clear the user state
-    //     navigate("/chat");
-    // };
-
     const signInWithGoogle = async () => {
         try {
             const result = await signInWithPopup(auth, provider);
@@ -55,6 +49,11 @@ const AccountAccess = () => {
                 console.log(data);
                 // Dispatch the user information to Redux
                 dispatch(setUser(data.user));
+                const token = data.user;
+                console.log("USER TOKEN: ", token)
+                // Store token locally
+                localStorage.setItem('access_token', data.access_token as string);
+
                 // Navigate to the chat page
                 navigate("/chat");
             } else {

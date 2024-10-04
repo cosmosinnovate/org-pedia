@@ -5,7 +5,6 @@ pydantic
 Flask-Bcrypt
 Flask-JWT-Extended
 hypercorn
-anthropic[bedrock]
 ollama
 Flask[async]
 flask_APScheduler==1.13.1
@@ -19,3 +18,4 @@ numpy
 google-auth
 Flask-SQLAlchemy
 psycopg2
+Flask-Migrate==4.0.7

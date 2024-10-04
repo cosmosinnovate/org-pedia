@@ -107,6 +107,7 @@ celerybeat.pid
 env/
 venv/
 ENV/
+.org_pedia
 
 env.bak/
 venv.bak/

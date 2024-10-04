@@ -8,13 +8,9 @@ import SideMenu from '../component/SideMenu';
 import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
-
-
 import remarkGfm from 'remark-gfm';
-// import { useSelector } from 'react-redux';
-// import { useAppDispatch } from '../hooks';
-// import { setUser, setLoading } from '../features/auth/authSlice';
 import { baseURL } from '../service';
+// import { useSelector } from 'react-redux';
 // import { RootState } from '../store';
 
 
@@ -40,26 +36,6 @@ const MainChat: React.FC = () => {
 
   // const userData = useSelector((selector: RootState) => selector.auth)
 
-  // const dispatch = useAppDispatch();
-
-  // useEffect(() => {
-  //   dispatch(setLoading(true));
-  //   // Should check if user is logged in
-  //   // Should check if user is authenticated
-  //   // The user accessToken should be stored in redux on loa
-  //   // Load access token from local storage
-  //   localStorage.getItem('access_token');
-  //   // decode the access token
-
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       dispatch(setUser(user));
-  //       dispatch(setLoading(false));
-  //     }
-
-  //   return () => unsubscribe();
-  // }, [dispatch]);
-
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -81,12 +57,13 @@ const MainChat: React.FC = () => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 
+    console.log([...messages, userMessage])
     try {
       let response: Response;
 
       switch (selectedChatService) {
         case 'ollama':
-          response = await fetch(`${baseURL}/ollama-chat`, {
+          response = await fetch(`${baseURL}/chat`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
