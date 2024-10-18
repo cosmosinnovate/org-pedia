@@ -1,32 +1,76 @@
 # Org Pedia Server
 
-## How to run the project.
+## How to run the project
 
-## Two parts setup.
-If you don't have bedrock setup, you can download ollama and run it locally on your computer.
+This project uses Ollama for local LLM (Large Language Model) processing and PostgreSQL as the database.
 
-## Ollama
-Go to ollama and follow the instructions to install it on your computer and also download codellama or llama3.1 8B parameters
+## Setup
 
-## Bedrock
-If you have aws account/not. Try to create one use existing one. Once you are in your console. Go to bedrock create your LLM instances. Once you have it ready, create your own creds and set it up on your computer.
+### 1. Ollama Setup
+1. Go to [Ollama's website](https://ollama.ai/) and follow the instructions to install it on your computer.
+2. Download either CodeLlama or Llama 3.2 (3B parameters) model using Ollama.
 
-## Project setup.
-You must setup python environment and run pip install -r requirements.txt
+   For example, to download CodeLlama:
+   ```
+   ollama pull codellama
+   ```
+   Or for Llama 3.2:
+   ```
+   ollama pull llama2:3b
+   ```
 
-## Add your database into in env file
-- AWS creds
-- Database creds
-- etc
+### 2. PostgreSQL Setup
+1. Install PostgreSQL on your system if you haven't already.
+2. Create a new database for the project:
+   ```
+   createdb orgpedia
+   ```
+3. Make note of your PostgreSQL username, password, and the database name you just created.
 
+### 3. Project Setup
+1. Set up a Python virtual environment:
+   ```
+   python -m venv venv
+   ```
 
+2. Activate the virtual environment:
+   - On Windows:
+     ```
+     venv\Scripts\activate
+     ```
+   - On macOS and Linux:
+     ```
+     source venv/bin/activate
+     ```
 
-# Database
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
 
-## Create and Apply New Migrations
-- After ensuring that the database is up to date, create the new migration for adding the id column:
+4. Set up the database URL environment variable:
+   - On Windows:
+     ```
+     set DATABASE_URL=postgresql://username:password@localhost/orgpedia
+     ```
+   - On macOS and Linux:
+     ```
+     export DATABASE_URL=postgresql://username:password@localhost/orgpedia
+     ```
+   Replace `username`, `password`, and `orgpedia` with your actual PostgreSQL credentials and database name.
 
-- Initial database migration
+## Running the Server
+1. Ensure your virtual environment is activated and the DATABASE_URL is set.
+2. Start the Flask server:
+   ```
+   flask run
+   ```
+   The server will typically run on `http://127.0.0.1:5000/`.
+
+## Database Management
+
+### Initial Setup
+To initialize the database and create initial migrations:
 
 ```
 flask db init  # Initialize migrations (run once)
@@ -34,14 +78,34 @@ flask db migrate -m "Initial migration"  # Create a migration
 flask db upgrade  # Apply the migration
 ```
 
+### Updating the Database
+When making changes to the database schema:
 
+1. Create a new migration:
+   ```bash
+   flask db migrate -m "Description of the change"
+   ```
+   For example:
+   ```bash
+   flask db migrate -m "Add id column to users table"
+   ```
 
+2. Apply the new migration:
+   ```bash
+   flask db upgrade
+   ```
 
-```bash 
-flask db migrate -m "Add id column to users table
-```
+## Development
+- The main application logic is in `app.py` or similar files.
+- Ensure Ollama is running when testing LLM-related features.
+- Make sure your PostgreSQL server is running and accessible.
 
-- Then apply this new migration:
-```bash
-flask db upgrade
-```
+## Troubleshooting
+- If you encounter issues with the LLM, ensure Ollama is running and the correct model is downloaded.
+- For database issues:
+  - Check that PostgreSQL is running
+  - Verify your database connection string (DATABASE_URL)
+  - Ensure all migrations are up to date
+  - Check PostgreSQL logs for any errors
+
+For more detailed information or if you continue to experience issues, please refer to the project documentation or contact the development team.

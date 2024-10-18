@@ -3,21 +3,18 @@ import ReactMarkdown, { Components } from 'react-markdown';
 import { Prism as SyntaxHighlighter, SyntaxHighlighterProps } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import the CSS for styling
+import 'react-toastify/dist/ReactToastify.css';
 import SideMenu from '../component/SideMenu';
 import userAssistant from '../assets/userAssistant.png';
 import uploadFile from '../assets/load-file.png';
 import sendMessage from '../assets/send-message.png';
 import remarkGfm from 'remark-gfm';
 import { baseURL } from '../service';
-// import { useSelector } from 'react-redux';
-// import { RootState } from '../store';
-
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+// import { useNavigate, useParams } from 'react-router-dom';
+import { AppDispatch, RootState } from '../store';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { Message, setChat } from '../features/chat/chatSlice';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface ChatMessagesProps {
   messages: Message[]
@@ -26,6 +23,8 @@ interface ChatMessagesProps {
 
 const MainChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const { chatId } = useParams<{ chatId?: string }>();
+  const user = useAppSelector((selector: RootState) => selector.auth.user)
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -33,18 +32,99 @@ const MainChat: React.FC = () => {
   const [selectedChatService, setSelectedChatService] = useState<'ollama' | 'bedrock'>('ollama');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const syntaxStyle: SyntaxHighlighterProps['style'] | CSSProperties = vscDarkPlus;
+  const [copiedCode, setCopiedCode] = useState('');
+  const navigate = useNavigate()
 
-  // const userData = useSelector((selector: RootState) => selector.auth)
+  // const dispatch: AppDispatch = useAppDispatch();
+  // const {chat, loading} = useAppSelector((state: RootState) => state.chat);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const startNewChat = useCallback(async () => {
+    try {
+      const response = await fetch(`${baseURL}/start-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.access_token}`
+        },
+        body: JSON.stringify({ messages: messages })
+      });
 
-  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement | KeyboardEvent | HTMLTextAreaElement>, inputMessage?: string) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log(data)
+      navigate(`/c/${data.chat_id}`, { replace: true });
+    } catch (error) {
+      console.error('Error starting new chat:', error);
+      toast.error('Failed to start a new chat. Please try again.');
+    }
+  }, [messages, navigate, user?.access_token]);
+
+  const fetchChats = useCallback(async () => {
+    try {
+      const response = await fetch(`${baseURL}/chats/${chatId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.access_token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const fetchedChat = await response.json();
+      console.log(fetchChats) // TODO: Add to redux
+
+      setMessages(fetchedChat.messages);
+    } catch (error) {
+      console.error('Error fetching chat:', error);
+      setMessages([])
+    }
+  }, [chatId, user?.access_token]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (chatId) {
+        await fetchChats();
+      }
+    };
+  
+    loadData(); // Call the async function inside the effect
+  
+  }, [chatId, fetchChats]);
+
+  // Call this when the chat is done loading
+  const updateChat = useCallback(async () => {
+    try {
+      const response = await fetch(`${baseURL}/chats/${chatId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.access_token}`
+        },
+        body: JSON.stringify({ messages: messages })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const fetchedChat = await response.json();
+      console.log(fetchedChat);
+      setMessages(fetchedChat);
+    } catch (error) {
+      console.error('Error fetching chat:', error);
+      toast.error('Failed to fetch chat. Please try again.');
+    }
+  }, [chatId, messages, user?.access_token]);
+
+  const handleSubmit = useCallback(async (event?: React.FormEvent<HTMLFormElement | KeyboardEvent | HTMLTextAreaElement>, inputMessage?: string) => {
     event?.preventDefault();
     const messageToSend = inputMessage || inputValue;
     if (!messageToSend.trim() || isLoading) return;
-
     const userMessage: Message = { role: 'user', content: messageToSend };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputValue('');
@@ -57,26 +137,16 @@ const MainChat: React.FC = () => {
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 
-    console.log([...messages, userMessage])
     try {
-      let response: Response;
 
+      let response: Response;
       switch (selectedChatService) {
         case 'ollama':
-          response = await fetch(`${baseURL}/chat`, {
+          response = await fetch(`${baseURL}/chats`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ messages: [...messages, userMessage] }),
-            signal,
-          });
-          break;
-        case 'bedrock':
-          response = await fetch(`${baseURL}/bedrock-chat`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user?.access_token}`
             },
             body: JSON.stringify({ messages: [...messages, userMessage] }),
             signal,
@@ -100,16 +170,13 @@ const MainChat: React.FC = () => {
 
       while (true) {
         const { done, value } = await reader.read();
-
         if (done) break;
-
         const chunk = new TextDecoder().decode(value);
         const lines = chunk.split('\n\n');
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-
             if (data === '[DONE]') {
               setIsLoading(false);
               break;
@@ -117,13 +184,11 @@ const MainChat: React.FC = () => {
 
             try {
               const parsedData = JSON.parse(data);
-
               if (parsedData.content) {
                 const processedChunks = new Set();
                 setMessages(prevMessages => {
                   const newMessages = [...prevMessages];
                   const lastMessage = newMessages[newMessages.length - 1];
-
                   if (lastMessage.role === 'assistant' && !processedChunks.has(parsedData.id)) {
                     processedChunks.add(parsedData.id);
                     lastMessage.content += parsedData.content;
@@ -131,21 +196,42 @@ const MainChat: React.FC = () => {
                   return newMessages;
                 });
               }
-
             } catch (error) {
               console.error('Error parsing SSE data:', error);
             }
           }
         }
+
       }
     } catch (error) {
+
       if (error instanceof DOMException && error.name === 'AbortError') {
         toast.error('Request timed out. Please try again.');
         return;
       }
+
     } finally {
       setIsLoading(false);
     }
+
+    if (chatId) {
+      await updateChat();
+    } else {
+      await startNewChat();
+    }
+  }, [
+    inputValue,
+    isLoading,
+    messages,
+    selectedChatService,
+    startNewChat,
+    updateChat,
+    chatId,
+    user?.access_token,
+  ])
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const scrollToBottom = useCallback(() => {
@@ -164,13 +250,10 @@ const MainChat: React.FC = () => {
     };
   }, []);
 
-  const [copiedCode, setCopiedCode] = useState('');
-
-
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code).then(() => {
       setCopiedCode(code);
-      setTimeout(() => setCopiedCode(''), 2000); // Clear after 2 seconds
+      setTimeout(() => setCopiedCode(''), 2000); 
     });
   };
 
@@ -182,12 +265,10 @@ const MainChat: React.FC = () => {
     ul: ({ children }) => <ul className="list-disc list-inside mb-2">{children}</ul>,
     ol: ({ children }) => <ol className="list-decimal list-inside">{children}</ol>,
     li: ({ children }) => <li className="mb-1">{children}</li>,
-
     code: ({ className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
       const codeContent = String(children).replace(/\n$/, '');
-      const language = match ? match[1] : 'text'; // Default to 'text' if no language is found
-
+      const language = match ? match[1] : 'text';
       return match ? (
         <div className='relative'>
           <div className='py-1 px-2 rounded-t-lg font-mono text-xs text-gray-800'>
@@ -221,7 +302,6 @@ const MainChat: React.FC = () => {
     blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-100 pl-4 italic my-2">{children}</blockquote>,
     hr: () => <hr className="my-4 border-t border-gray-50" />,
     img: ({ src, alt }) => <img src={src} alt={alt} className="max-w-full h-auto my-2" />,
-
     // Updated table components
     table: ({ children }) => (
       <div className="overflow-x-auto">
@@ -238,7 +318,6 @@ const MainChat: React.FC = () => {
     td: ({ children }) => <td className="border border-gray-300 px-4 py-2">{children}</td>,
     tr: ({ children }) => <tr>{children}</tr>,
   };
-
 
   const handleSelectedChatService = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedChatService(event.target.value as 'ollama' | 'bedrock');
@@ -260,9 +339,7 @@ const MainChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen transition-all duration-300 overflow-y-auto">
-
       <div className="flex-1 flex flex-col md:flex-row">
-        {/* Takes the left side */}
         <SideMenu
           selectedChatService={selectedChatService}
           handleSelectedChatService={handleSelectedChatService}
@@ -270,9 +347,7 @@ const MainChat: React.FC = () => {
           toggleMenu={toggleSidebar}
         />
 
-        {/* Takes the right full side */}
         <main className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
-
           <div className="flex w-full flex-col">
             <div className={`flex justify-center text-5xl ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
               <span className="text-[#fa6f73]  font-['poppins'] font-bold">Org</span>
@@ -282,10 +357,7 @@ const MainChat: React.FC = () => {
 
             <div className={`font-semibold text-[32px] text-center ${messages.length > 0 ? 'hidden' : 'block'} `}>Unlocking the Potential of Organizational Wisdom</div>
 
-            {/* Fix this to show columns cleanly on small devices */}
-
             <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
-
             <div className={`flex flex-1 w-full md:w-[830px]  mx-auto pb-20 overflow-hidden`}>
               <div className="flex  flex-col space-y-10 justify-items-end overflow-auto">
                 <ChatMessages messages={messages} markdownComponents={markdownComponents} />
@@ -311,7 +383,6 @@ const MainChat: React.FC = () => {
                     const minHeight = 30;
                     const lineHeight = 24;
                     const newHeight = Math.min(newLines * lineHeight, maxLines * lineHeight);
-
                     setInputValue(newValue);
                     e.target.style.height = `${Math.max(newHeight, minHeight)}px`;
                   }}
@@ -328,29 +399,20 @@ const MainChat: React.FC = () => {
                 />
 
                 {(abortControllerRef.current && isLoading) && (
-
                   <button
                     type="submit"
-                    onClick={(e) => handleAbort(e)}  // Pass the event correctly
+                    onClick={(e) => handleAbort(e)} 
                     className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading
                       && 'glowing'}`}
                   >
                     <div className="w-4 h-4 bg-black" />
                   </button>
                 )}
-
                 {!abortControllerRef.current && (
-
-
-                  <button
-                    type="submit"
-                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading
-                      && 'cursor-not-allowed glowing'}`}
-                  >
+                  <button type="submit" className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading && 'cursor-not-allowed glowing'}`}>
                     {inputValue && !isLoading && <img src={sendMessage} className="w-4" />}
                   </button>
                 )}
-
               </form>
             </div>
           </div>
@@ -360,18 +422,13 @@ const MainChat: React.FC = () => {
   );
 };
 
-export default MainChat;
-
 interface CallToActionItemsProps {
   messages: Message[];
   handleSubmitCustom: (messageContent: string) => void
 }
 
-
-
 const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdownComponents }) => {
   const messageListRef = useRef<HTMLDivElement>(null);
-
   const renderMessage = (message: Message, index: number) => (
     <div
       key={index}
@@ -412,12 +469,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = React.memo(({ messages, markdo
 });
 
 const CallToActionItems: FC<CallToActionItemsProps> = ({ messages, handleSubmitCustom }) => {
-
   return <div className={`text-black md:w-[900px] p-4  ${messages.length > 0 ? 'hidden' : 'block'} flex flex-col justify-center my-auto mx-auto w-full font-semibold text-2xl mt-10`}>
-    {/* Section for Executives */}
     <div className="text-black font-medium text-2xl mb-4">For Executive</div>
-
-    {/* Section for Employees */}
     <div className="flex flex-col md:flex-row gap-4 w-full justify-around font-bold ">
       <button
         className="w-full p-4 md:p-10  text-2xl shadow flex flex-col justify-around items-center rounded-[10px] border border-black h-[102px]"
@@ -441,3 +494,4 @@ const CallToActionItems: FC<CallToActionItemsProps> = ({ messages, handleSubmitC
   </div>;
 }
 
+export default MainChat;

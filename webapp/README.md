@@ -1,50 +1,70 @@
-# React + TypeScript + Vite
+# Chat Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a chat application built with React.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before running the application, make sure you have the following installed:
 
-## Expanding the ESLint configuration
+- Node.js (version 12 or higher)
+- npm (usually comes with Node.js)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Getting Started
 
-- Configure the top-level `parserOptions` property like this:
+To run the React app, follow these steps:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+1. Navigate to the `webapp` directory in your terminal:
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+   ```
+   cd webapp
+   ```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+2. Install the dependencies:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+   ```
+   npm install
+   ```
+
+3. Start the React development server:
+
+   ```
+   npm start
+   ```
+
+   The application will be available at `http://localhost:3000` by default.
+
+## Main Components
+
+The main chat component is located in `src/views/MainChat.tsx`. This file contains the core functionality of the chat interface.
+
+## Development
+
+To make changes to the application:
+
+1. Open the project in your preferred code editor.
+2. Navigate to the `src` directory to find the React components.
+3. Make your changes to the relevant files.
+4. The development server will automatically reload with your changes.
+
+## Building for Production
+
+To create a production build of the app:
+
+1. Run the build command:
+
+   ```
+   npm run build
+   ```
+
+2. The optimized production files will be created in the `build` directory.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Ensure all dependencies are installed correctly by running `npm install` again.
+2. Clear your browser cache and restart the development server.
+3. Check the console in your web browser for any error messages.
+
+For more detailed information or if you continue to experience issues, please refer to the React documentation or contact the development team.
+
