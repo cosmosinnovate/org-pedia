@@ -63,7 +63,7 @@ This project uses Ollama for local LLM (Large Language Model) processing and Pos
 1. Ensure your virtual environment is activated and the DATABASE_URL is set.
 2. Start the Flask server:
    ```
-   flask run
+   hypercorn app.main:app --reload
    ```
    The server will typically run on `http://127.0.0.1:5000/`.
 
