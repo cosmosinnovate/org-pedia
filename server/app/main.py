@@ -27,7 +27,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@localhost/org_pedia"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")

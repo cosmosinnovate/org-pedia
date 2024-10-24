@@ -20,11 +20,10 @@ This project uses Ollama for local LLM (Large Language Model) processing and Pos
    ```
 
 ### 2. PostgreSQL Setup
-1. Install PostgreSQL on your system if you haven't already.
+1. I have added a docker-compose file that you can execute to run the postgres database.  If you have postgres already, just modify the database URL. ```"postgresql://postgres:postgres@localhost/org_pedia"```
 2. Create a new database for the project:
-   ```
-   createdb orgpedia
-   ```
+   Open you postgres dbms and create a table and call it org_pedia
+
 3. Make note of your PostgreSQL username, password, and the database name you just created.
 
 ### 3. Project Setup
@@ -48,24 +47,24 @@ This project uses Ollama for local LLM (Large Language Model) processing and Pos
    pip install -r requirements.txt
    ```
 
-4. Set up the database URL environment variable:
-   - On Windows:
-     ```
-     set DATABASE_URL=postgresql://username:password@localhost/orgpedia
-     ```
-   - On macOS and Linux:
-     ```
-     export DATABASE_URL=postgresql://username:password@localhost/orgpedia
-     ```
-   Replace `username`, `password`, and `orgpedia` with your actual PostgreSQL credentials and database name.
+4. Set up the environment variable: Set the .env.example 
 
-## Running the Server
-1. Ensure your virtual environment is activated and the DATABASE_URL is set.
-2. Start the Flask server:
-   ```
-   hypercorn app.main:app --reload
-   ```
-   The server will typically run on `http://127.0.0.1:5000/`.
+On Windows:
+```shell
+set DATABASE_URL="postgresql://postgres:postgres@localhost/org_pedia"
+set JWT_SECRET_KEY=super-secret-key-20124
+set SECRET_KEY=super-secret-key-20124
+set FLASK_APP=app.main
+```
+
+On macOS and Linux:
+```bash
+export DATABASE_URL="postgresql://postgres:postgres@localhost/org_pedia"
+export JWT_SECRET_KEY=super-secret-key-20124
+export SECRET_KEY=super-secret-key-20124
+export FLASK_APP=app.main
+
+```
 
 ## Database Management
 
@@ -94,6 +93,15 @@ When making changes to the database schema:
    ```bash
    flask db upgrade
    ```
+
+
+## Running the Server
+1. Ensure your virtual environment is activated and the DATABASE_URL is set.
+2. Start the Flask server:
+   ```
+   hypercorn app.main:app --reload
+   ```
+   The server will typically run on `http://127.0.0.1:5000/`. `http://127.0.0.1:8000/`.
 
 ## Development
 - The main application logic is in `app.py` or similar files.

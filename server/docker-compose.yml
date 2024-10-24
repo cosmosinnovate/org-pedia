@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:14.1-alpine # Using a specific version of the PostgreSQL image
+    container_name: postgres_db # Renamed container for clarity
+    restart: always # Always restart the container if it stops
+    ports:
+      - '5432:5432' # Mapping host port 5432 to container port 5432
+    environment:
+      POSTGRES_USER: postgres # Default user
+      POSTGRES_PASSWORD: postgres # Default password
+      POSTGRES_DB: postgres # Default database
