@@ -96,12 +96,16 @@ When making changes to the database schema:
 
 
 ## Running the Server
+
 1. Ensure your virtual environment is activated and the DATABASE_URL is set.
-2. Start the Flask server:
-   ```
-   hypercorn app.main:app --reload
-   ```
-   The server will typically run on `http://127.0.0.1:5000/`. `http://127.0.0.1:8000/`.
+2. Start the Flask server: Use hypercorn please
+
+```bash
+hypercorn app.main:app --reload
+```
+   The server will typically run on `http://127.0.0.1:8000/`.
+
+# If you don't have the frontend running already, that should be your next task to run and test that the endpoint is correct in the frontend code.
 
 ## Development
 - The main application logic is in `app.py` or similar files.
