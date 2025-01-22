@@ -344,8 +344,6 @@ def chat():
     
 @app.route("/", methods=["GET"])
 def health():
-    data = request.json
-    print(data)
     return jsonify({"message": "OK"})
 
 if __name__ == "__main__":
