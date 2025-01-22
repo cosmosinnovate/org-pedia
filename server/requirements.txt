@@ -1,21 +1,50 @@
+# Core Flask packages
 Flask
 Flask-CORS
-pymongo
-pydantic
 Flask-Bcrypt
 Flask-JWT-Extended
-hypercorn
-ollama
 Flask[async]
-flask_APScheduler==1.13.1
-openai==1.37.1
-pinecone-client
-python-dotenv==1.0.1
-hypercorn
-Requests==2.32.3
-urllib3==2.2.2
-numpy
-google-auth
+flask_APScheduler
 Flask-SQLAlchemy
+Flask-Migrate
+
+# Database
+pymongo
 psycopg2
-Flask-Migrate==4.0.7
+chromadb
+
+# LangChain ecosystem (updated versions)
+langchain
+langchain-core
+langchain-community
+langchain-experimental
+langchain-openai
+langchain-pinecone
+langchain-ollama
+langchain_text_splitters
+
+# Document processing
+unstructured[all-docs]
+pdfplumber
+
+# Embeddings and ML
+fastembed
+sentence-transformers
+numpy
+pinecone-client
+
+# API and HTTP
+openai
+Requests
+urllib3
+ollama
+elevenlabs
+psycopg2
+
+# Utils
+python-dotenv
+pydantic
+pydantic-settings
+google-auth
+hypercorn
+tenacity

@@ -38,6 +38,11 @@ if not app.config['JWT_SECRET_KEY']:
 if not app.config['SECRET_KEY']:
     print("Warning: SECRET_KEY is not set. It's recommended to set it for enhanced security.")
 
+# check if database exist
+if not app.config['SQLALCHEMY_DATABASE_URI']:
+    raise RuntimeError("DATABASE_URL is not set. Please set it as an environment variable.")
+
+# check if database org_pedia is created
 
 # Extensions initialization
 db = SQLAlchemy(app)
@@ -233,7 +238,7 @@ def create_chat():
         
         return jsonify({"message": "Chat created successfully", "chat_id": new_message.id}), 201
     except Exception as e:
-        print(f"An error occurered: {str(e)}")
+        print(f"An error occurred: {str(e)}")
         return jsonify({"message": "An error occurred during sign in"}), 500
     
 @app.route("/chats", methods=["GET"])
