@@ -48,3 +48,9 @@ pydantic-settings
 google-auth
 hypercorn
 tenacity
+marshmallow
+
+sendgrid
+pytest
+pytest-flask
+pytest-cov

@@ -1,16 +1,15 @@
-
+from datetime import timedelta
+from flask import jsonify
+from flask_jwt_extended import create_access_token
 
 def generate_response(message, user, access_token, status_code):
     return jsonify({
         "message": message,
         "access_token": access_token,
-        "user": user.to_dict(),
+        "user": user,
     }), status_code
     
-    
-    
-# Helper functions
-def generate_jwt(user: User) -> str:
+def generate_jwt(user) -> str:
     return create_access_token(
         identity=user.id,
         additional_claims={
