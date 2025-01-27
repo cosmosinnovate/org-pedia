@@ -1,4 +1,7 @@
 import ollama
+import logging
+
+logger = logging.getLogger(__name__)
 
 class LLMService:
     """
@@ -15,33 +18,45 @@ class LLMService:
         return f"GPT-4 Response: {prompt}"
 
     @staticmethod
-    def generate_chat_ollama(prompt, model_name):
+    def generate_chat_ollama(messages, model_name):
         """
         Generate chat using Ollama models (e.g., LLaMA, Falcon, Mistral, DeepSeek).
+        
+        Args:
+            messages (list): List of message dictionaries with 'role' and 'content'
+            model_name (str): Name of the Ollama model to use
+            
+        Returns:
+            generator: Stream of response chunks from the model
         """
-        messages = [{"role": "user", "content": prompt}]
-        return ollama.chat(
-            model=model_name,
-            messages=messages,
-            options={"temperature": 0.9, "max_token": 2048},
-            stream=True,
-        )
+        try:
+            logger.info(f"Generating chat with {model_name}")
+            return ollama.chat(
+                model=model_name,
+                messages=messages,
+                options={"temperature": 0.9, "max_tokens": 2048},
+                stream=True,
+            )
+        except Exception as e:
+            logger.error(f"Error generating chat: {str(e)}")
+            raise
 
     @staticmethod
-    def generate_chat(model_provider, model_name, prompt):
+    def generate_chat(model_provider, model_name, messages):
         """
-        Generate chat based on the specified model provider and model name.
+        Generate chat using different model providers.
+        
+        Args:
+            model_provider (str): Provider of the model (e.g., 'ollama', 'openai')
+            model_name (str): Name of the model to use
+            messages (list): List of message dictionaries with 'role' and 'content'
+            
+        Returns:
+            generator: Stream of response chunks from the model
         """
-        # Map model providers to their respective methods
-        model_handlers = {
-            "openai": LLMService.generate_open_ai,
-            "ollama": LLMService.generate_chat_ollama,
-        }
-
-        # Get the appropriate handler for the model provider
-        handler = model_handlers.get(model_provider)
-        if not handler:
+        if model_provider == "ollama":
+            return LLMService.generate_chat_ollama(messages, model_name)
+        elif model_provider == "openai":
+            return LLMService.generate_open_ai(messages)
+        else:
             raise ValueError(f"Unsupported model provider: {model_provider}")
-
-        # Call the handler with the prompt and model name
-        return handler(prompt, model_name)

@@ -7,7 +7,7 @@ from app.services.user_service import UserService as user_service
 auth_bp = Blueprint('auth', __name__)
 user_schema = UserSchema()
 
-@auth_bp.route("/auth", methods=["POST"])
+@auth_bp.route("/register", methods=["POST"])
 def authentication():
     data = request.get_json()
     user, access_token = user_service.create_user(data)

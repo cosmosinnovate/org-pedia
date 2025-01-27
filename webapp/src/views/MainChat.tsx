@@ -63,6 +63,7 @@ const MainChat: React.FC = () => {
 
   const fetchChats = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${baseURL}/chats/${chatId}`, {
         method: 'GET',
         headers: {
@@ -76,12 +77,13 @@ const MainChat: React.FC = () => {
       }
 
       const fetchedChat = await response.json();
-      console.log(fetchChats) // TODO: Add to redux
-
-      setMessages(fetchedChat.messages);
+      setMessages(fetchedChat);
     } catch (error) {
       console.error('Error fetching chat:', error);
-      setMessages([])
+      toast.error('Failed to load chat history. Please try again.');
+      setMessages([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [chatId, user?.access_token]);
 
@@ -347,29 +349,42 @@ const MainChat: React.FC = () => {
           toggleMenu={toggleSidebar}
         />
 
-        <main className={`flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10`}>
+        <main className="flex flex-col w-full items-center mx-auto space-y-10 overflow-y-auto my-auto justify-center transition-all duration-300 ease-in-out mt-10">
           <div className="flex w-full flex-col">
-            <div className={`flex justify-center text-5xl ${messages.length > 0 ? 'hidden' : 'block'}  mx-auto`}>
-              <span className="text-[#fa6f73]  font-['poppins'] font-bold">Org</span>
-              <span className="text-[#a1b3ff]  font-extrabold font-['poppins']">//</span>
-              <span className="text-[#a1b3ff]  font-bold ">Pedia</span>
+            <div className={`flex justify-center text-5xl ${messages.length > 0 ? 'hidden' : 'block'} mx-auto`}>
+              <span className="text-[#fa6f73] font-['poppins'] font-bold">Org</span>
+              <span className="text-[#a1b3ff] font-extrabold font-['poppins']">//</span>
+              <span className="text-[#a1b3ff] font-bold">Pedia</span>
             </div>
 
-            <div className={`font-semibold text-[32px] text-center ${messages.length > 0 ? 'hidden' : 'block'} `}>Unlocking the Potential of Organizational Wisdom</div>
+            <div className={`font-semibold text-[32px] text-center ${messages.length > 0 ? 'hidden' : 'block'}`}>
+              Unlocking the Potential of Organizational Wisdom
+            </div>
 
-            <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />
-            <div className={`flex flex-1 w-full md:w-[830px]  mx-auto pb-20 overflow-hidden`}>
-              <div className="flex  flex-col space-y-10 justify-items-end overflow-auto">
+            {messages.length === 0 && <CallToActionItems messages={messages} handleSubmitCustom={handleSubmitCustom} />}
+            
+            <div className="flex flex-1 w-full md:w-[830px] mx-auto pb-20 overflow-hidden">
+              <div className="flex flex-col space-y-10 justify-items-end overflow-auto w-full">
                 <ChatMessages messages={messages} markdownComponents={markdownComponents} />
+                {isLoading && (
+                  <div className="flex items-start p-4">
+                    <div className="flex-shrink-0 w-8 h-8 mr-4">
+                      <img src={userAssistant} alt="Assistant" className="w-full h-full rounded-full" />
+                    </div>
+                    <div className="flex flex-col flex-grow">
+                      <div className="text-gray-700"></div>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
             </div>
 
-            <div className={`flex justify-center  left-0 align-middle w-full  mx-auto fixed bottom-6`}>
-              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-[#F5F5F5] rounded-xl justify-center w-full  md:w-[830px] p-6">
+            <div className="flex justify-center left-0 align-middle w-full mx-auto fixed bottom-6">
+              <form onSubmit={handleSubmit} className="flex flex-row shadow-md bg-[#F5F5F5] rounded-xl justify-center w-full md:w-[830px] p-6">
                 <button
                   type="submit"
-                  className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none `}
+                  className="text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none"
                   disabled={isLoading}
                 >
                   <img src={uploadFile} alt="File upload" />
@@ -401,16 +416,18 @@ const MainChat: React.FC = () => {
                 {(abortControllerRef.current && isLoading) && (
                   <button
                     type="submit"
-                    onClick={(e) => handleAbort(e)} 
-                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading
-                      && 'glowing'}`}
+                    onClick={(e) => handleAbort(e)}
+                    className="text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none"
                   >
                     <div className="w-4 h-4 bg-black" />
                   </button>
                 )}
                 {!abortControllerRef.current && (
-                  <button type="submit" className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading && 'cursor-not-allowed glowing'}`}>
-                    {inputValue && !isLoading && <img src={sendMessage} className="w-4" />}
+                  <button 
+                    type="submit" 
+                    className={`text-white rounded-full h-10 w-10 justify-center flex items-center focus:outline-none ${isLoading && 'cursor-not-allowed'}`}
+                  >
+                    {inputValue && !isLoading && <img src={sendMessage} className="w-4" alt="Send" />}
                   </button>
                 )}
               </form>

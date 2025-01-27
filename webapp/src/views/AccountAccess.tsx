@@ -26,7 +26,7 @@ const AccountAccess = () => {
                 access_token: token
             };
 
-            const response = await fetch(`${baseURL}/auth`, {
+            const response = await fetch(`${baseURL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

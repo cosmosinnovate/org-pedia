@@ -1,41 +1,32 @@
 # app.__init__.py
 from venv import logger
-from flask import Flask
-import os
+from flask import Flask, jsonify
 from flask_cors import CORS
+import logging
+import os
 
 from app.config import DevConfig, ProdConfig, TestConfig
-from flask_cors import CORS
+from app.database.db import db, migrate, jwt, init_db
 
-from app.database.db import db, migrate, jwt
-
-# Flask app initialization
-app = Flask(__name__)
-CORS(app)
-
-def create_app(config_name=None):
-    app = Flask(__name__)
-    CORS(app, supports_credentials=True)
+def create_app(config_name='default'):
+    """Application factory function"""
     
-    if config_name is None:
-        config_name = os.environ.get('FLASK_ENV', 'development')
-        
-    config_mapping = {
-        "development": DevConfig,
-        "production": ProdConfig,
-        "testing": TestConfig,
-        None: DevConfig,  # Default to development
-    }
-
-    # Get config class and handle invalid config names
-    config_class = config_mapping.get(config_name)
-    if config_class is None:
-        app.logger.warning(
-            f"Invalid config name '{config_name}'. Defaulting to development."
-        )
-        config_class = DevConfig
-
-    # Apply configuration
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    app = Flask(__name__)
+    
+    # Load configuration
+    config_class = {
+        'development': DevConfig,
+        'production': ProdConfig,
+        'testing': TestConfig,
+        'default': DevConfig
+    }.get(config_name, DevConfig)
+    
     app.config.from_object(config_class)
     config_class.init_app(app)
 
@@ -48,13 +39,24 @@ def create_app(config_name=None):
     
     migrate.init_app(app, db)  # Initialize Flask-Migrate
     jwt.init_app(app)
-    # init_migration_cli(app)  # This adds the 'flask safe-migrate' command
+    
+    # Enable CORS
+    CORS(app, supports_credentials=True)
+    
+    # Register blueprints
+    from app.routes import (
+        auth_bp,
+        chat_history_bp   
+    )
+
+    # apis
+    app.register_blueprint(auth_bp, url_prefix="/api/auth") 
+    app.register_blueprint(chat_history_bp, url_prefix="/api/chats")
 
     @app.route("/")
     def health_check():
         return {"status": "ok"}
 
-    
     # Error handling (remains synchronous for simplicity)
     @app.errorhandler(400)
     def bad_request(error):
@@ -69,15 +71,7 @@ def create_app(config_name=None):
         logger.error(f"Internal Server Error: {str(error)}")
         return {"error": "Internal server error", "message": "An unexpected error occurred"}, 500
 
-    # Register blueprints
-    from app.routes import (
-        auth_bp,
-        chat_history_bp   
-        )
-
-    # apis
-    app.register_blueprint(auth_bp, url_prefix="/api/auth") 
-    app.register_blueprint(chat_history_bp, url_prefix="/api/business")
-
-    
     return app
+
+# Create the app instance
+app = create_app()

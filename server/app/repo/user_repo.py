@@ -1,56 +1,70 @@
+from datetime import datetime
 from sqlite3 import OperationalError
+import logging
 
-from app.database import db
+from app.database.db import db
 from app.utils import generate_jwt
+from app.models.models import UserModel
 
-from app.models.models import GoogleUserModel, User as UserModel
-
+logger = logging.getLogger(__name__)
 
 class UserRepository:
     @staticmethod
-    def save_user_to_db(data: dict)-> tuple:
+    def create_or_update_user(user_data):
+        """
+        Create or update a user in the database.
+        
+        Args:
+            user_data (dict): A dictionary containing the user data.
+        
+        Returns:
+            tuple: A tuple containing the user object and the access token.
+        
+        Raises:
+            Exception: If there is an error creating or updating the user.
+        """
+        logger.info(f"Creating or updating user with email: {user_data.email}")
         try:
-            user_data = GoogleUserModel(**data)
-            # Check if user already exists
-            user = UserRepository.get_user_by_email(email=user_data.email)
+            # Check if user exists
+            user = UserModel.query.filter_by(email=user_data.email).first()
             
             if user:
                 # Existing user, update user data
-                UserRepository.update_user_repo(user, user_data)
+                user.display_name = user_data.display_name
+                user.email = user_data.email
+                user.photo_url = user_data.photo_url
+                user.access_token = user_data.access_token
+                user.updated_at = datetime.now()
+                db.session.commit()
+                logger.info(f"Updated existing user: {user.email}")
             else:
-                # New user, save user data
+                # New user, create and save user data
                 user = UserModel(
-                    user_google_id=user_data.user_google_id,
                     display_name=user_data.display_name,
                     email=user_data.email,
                     photo_url=user_data.photo_url,
-                    access_token=user_data.access_token,
+                    access_token=user_data.access_token
                 )
                 db.session.add(user)
-                db.session.commit()
+                logger.info(f"Created new user: {user.email}")
+            
+            # Commit the changes
+            db.session.commit()
+            
             # Generate JWT token
             access_token = generate_jwt(user)
             return user, access_token
-        
-        except OperationalError as e:
-            print(f"Error saving user: {e}")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error saving user: {str(e)}")
             raise
 
-    @staticmethod
-    def update_user_repo(user, user_data):
-        user.username = user_data.username
-        user.email = user_data.email
-        user.photo_url = user_data.photo_url
-        user.access_token = user_data.access_token
-        db.session.commit()
-        return user
-    
     @staticmethod
     def get_user_by_email(email: str):
         try:
             return UserModel.query.filter_by(email=email).first()
         except Exception as e:
-            print(f"Error fetching user: {e}")
+            logger.error(f"Error fetching user: {str(e)}")
             return None
 
     @staticmethod
@@ -58,7 +72,7 @@ class UserRepository:
         try:
             return UserModel.query.filter_by(id=user_id).first()
         except Exception as e:
-            print(f"Error fetching user: {e}")
+            logger.error(f"Error fetching user: {str(e)}")
             return None
 
     @staticmethod
@@ -72,7 +86,7 @@ class UserRepository:
             db.session.delete(user)
             db.session.commit()
         except Exception as e:
-            print(f"Error deleting user: {e}")
+            logger.error(f"Error deleting user: {str(e)}")
             raise
 
     @staticmethod
@@ -82,5 +96,5 @@ class UserRepository:
             user.username = username
             db.session.commit()
         except Exception as e:
-            print(f"Error updating user: {e}")
+            logger.error(f"Error updating user: {str(e)}")
             raise
