@@ -39,6 +39,13 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST')
+    ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER')
+    ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD')
+    ELASTICSEARCH_USERNAME = os.environ.get('ELASTICSEARCH_USERNAME')
+    ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'documents')  # Set default value
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+    ELASTICSEARCH_API_KEY = os.environ.get('ELASTICSEARCH_API_KEY')
     
     # Database configuration
     SQLALCHEMY_DATABASE_URI = (
@@ -140,6 +147,13 @@ class ProdConfig(Config):
             'JWT_SECRET_KEY': os.environ.get('JWT_SECRET_KEY'),
             'DATABASE_URL': os.environ.get('DATABASE_URL'),
             'SENDGRID_API_KEY'  : os.environ.get('SENDGRID_API_KEY'),
+            'SENDGRID_FROM_EMAIL': os.environ.get('SENDGRID_FROM_EMAIL'),
+            'ELASTICSEARCH_HOST': os.environ.get('ELASTICSEARCH_HOST'),
+            'ELASTICSEARCH_USER': os.environ.get('ELASTICSEARCH_USER'),
+            'ELASTICSEARCH_PASSWORD': os.environ.get('ELASTICSEARCH_PASSWORD'),
+            'ELASTICSEARCH_USERNAME': os.environ.get('ELASTICSEARCH_USERNAME'),
+            'ELASTICSEARCH_URL': os.environ.get('ELASTICSEARCH_URL'),
+            'ELASTICSEARCH_INDEX': os.environ.get('ELASTICSEARCH_INDEX', 'documents'),  # Add to validation with default
             # 'REDIS_URL': os.environ.get('REDIS_URL')
         }
         validate_env_vars(prod_vars, 'Production')
@@ -181,7 +195,14 @@ class DevConfig(Config):
             'DATABASE_USERNAME': DATABASE_USERNAME,
             'DATABASE_PASSWORD': DATABASE_PASSWORD,
             'DATABASE_HOST': DATABASE_HOST,
-            'DATABASE_NAME': DATABASE_NAME
+            'DATABASE_NAME': DATABASE_NAME,
+            'ELASTICSEARCH_HOST': ELASTICSEARCH_HOST,
+            'ELASTICSEARCH_USER': ELASTICSEARCH_USER,
+            'ELASTICSEARCH_PASSWORD': ELASTICSEARCH_PASSWORD,
+            'ELASTICSEARCH_USERNAME': ELASTICSEARCH_USERNAME,
+            'ELASTICSEARCH_URL': ELASTICSEARCH_URL,
+            'ELASTICSEARCH_INDEX': os.environ.get('ELASTICSEARCH_INDEX', 'documents'),  # Add to validation with default
+            'SECRET_KEY': os.environ.get('SECRET_KEY'),
         }
         validate_env_vars(dev_vars, 'Development')
 

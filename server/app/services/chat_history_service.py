@@ -29,10 +29,10 @@ class ChatHistoryService:
         return True
         
     @staticmethod
-    def get_user_chat_by_id(user_id):
+    def get_user_chats_by_id(user_id):
         """Get all chats for a user"""
         logger.info(f"Fetching chat history for user: {user_id}")
-        return chat_repo.get_user_chat_by_id(user_id)
+        return chat_repo.get_user_chats_by_id(user_id)
         
     @staticmethod
     def get_chat_history_by_id(chat_id, user_id):

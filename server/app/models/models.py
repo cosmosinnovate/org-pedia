@@ -65,6 +65,6 @@ class ChatHistory(db.Model):
             "id": self.id,
             "user_id": self.user_id,
             "title": self.title,
-            "messages": self.messages if isinstance(self.messages, list) else json.loads(self.messages) if self.messages else [],
+            "messages": self.messages,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
