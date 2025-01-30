@@ -112,7 +112,7 @@ class ElasticsearchService:
             doc_body = {
                 "content": cleaned_content,
                 "embedding": embedding,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(datetime.timezone.utc).isoformat()
             }
             
             logger.info(f"Document body keys: {doc_body.keys()}")
@@ -147,16 +147,15 @@ class ElasticsearchService:
         try:
             index_name = os.getenv("ELASTICSEARCH_INDEX", "org_pedia")
             logger.info(f"Searching in index: {index_name}")
-            logger.info(f"Query embedding dimensions: {len(query_embedding)}")
             
             if not es.indices.exists(index=index_name):
                 logger.error(f"Index {index_name} does not exist")
                 return []
 
-            # Get index stats
             try:
                 stats = es.indices.stats(index=index_name)
                 doc_count = stats['indices'][index_name]['total']['docs']['count']
+                
                 logger.info(f"Index contains {doc_count} org_pedia")
             except Exception as e:
                 logger.error(f"Failed to get index stats: {str(e)}")
@@ -195,7 +194,6 @@ class ElasticsearchService:
                     if "timestamp" in hit["_source"]:
                         logger.info(f"  Timestamp: {hit['_source']['timestamp']}")
             
-            # Filter and return only content from documents that meet the threshold
             relevant_docs = []
             for hit in hits:
                 score = hit["_score"] - 1.0  # Adjust for the +1.0 in the script_score

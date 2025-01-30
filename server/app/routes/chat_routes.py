@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request, Response, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity # type: ignore
 import json
 import logging
+from PyPDF2 import PdfReader # type: ignore
 import os
 
 from app.schemas.schemas import ChatHistorySchema
@@ -98,11 +99,9 @@ def chat():
         messages = data.get("messages", [])
         current_user = get_jwt_identity()
 
-        # Validate messages format
         if not messages or not isinstance(messages, list):
             return jsonify({"error": "Invalid messages format"}), 400
 
-        # Get the last message which should be the user's question
         user_message = messages.pop() if messages else None
         logger.info(f"User message: {user_message}")   
         
@@ -110,8 +109,7 @@ def chat():
             return jsonify({"error": "Last message must be a user message"}), 400
             
         user_question = user_message['content'].strip()
-        logger.info(f"Processing user question: {user_question}")
-
+        
         # Generate embedding for semantic search
         query_embedding = llm_service.get_embedding(user_question)
         if not query_embedding:
@@ -127,7 +125,6 @@ def chat():
         try:
             stats = es.count(index=index_name)['count']
             doc_count = stats['indices'][index_name]['total']['docs']['count']
-            logger.info(f"Searching in index with {doc_count} org_pedia")
             if doc_count == 0:
                 return jsonify({"error": "No documents have been indexed yet"}), 404
         except Exception as e:
@@ -171,6 +168,13 @@ def chat():
                     "Do not add any external knowledge or make assumptions."
                 )
             }
+            
+            # Add the ability for the system to refer to the context
+            context_text = f"{system_message['content']}\n\n{context_text}"
+            # Add the ability to use different LLM models for different contexts
+            # For instance when a user asks about a specific product or service of the company and it does not exist in the general documentation
+            # then the system should be able to look for another agents that are specialized in that product or service.
+            # If not it should just use the general know
             
             # Create a user message with the context and question
             context_message = {
@@ -292,7 +296,6 @@ def upload_file():
                     return jsonify({"error": f"Text decoding failed: {str(e)}"}), 400
         elif file.mimetype == 'application/pdf':
             # Handle PDF files
-            from PyPDF2 import PdfReader
             pdf = PdfReader(file)
             content = "\n".join([page.extract_text() for page in pdf.pages])
         else:

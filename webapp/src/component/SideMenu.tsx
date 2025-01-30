@@ -1,42 +1,41 @@
 import React, { useCallback, useEffect } from 'react';
 import sidebarIcon from '../assets/sidebar.png';
 import { logoutUser } from '../features/auth/authSlice';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { baseURL } from '../service';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { AppDispatch, RootState } from '../store';
 import { MessageResponse, setChat } from '../features/chat/chatSlice';
-import { LLMModels } from '../util/model';
 
 interface SideMenuProps {
-    selectedLLM: LLMModels;
-    handleSelectedLLM: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+    selectedChatService: 'ollama' | 'bedrock';
+    handleSelectedChatService: (event: React.ChangeEvent<HTMLSelectElement>) => void;
     isOpen: boolean;
     toggleMenu: () => void;
+    className?: string; // Add className prop
 }
 
-const SideMenu: React.FC<SideMenuProps> = ({ selectedLLM, handleSelectedLLM, isOpen, toggleMenu }) => {
+const SideMenu: React.FC<SideMenuProps> = ({ selectedChatService, handleSelectedChatService, isOpen, toggleMenu }) => {
     const navigate = useNavigate()
     const dispatch: AppDispatch = useAppDispatch();
     const { auth: { user }, chat } = useAppSelector((select: RootState) => select)
-    const location = useLocation()
 
     const fetchUserChats = useCallback(async () => {
         try {
-            const response = await fetch(`${baseURL}/chats`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'applicatIon/json',
-                        'Authorization': `Bearer ${user?.access_token as string}`
-                    }
-                })
+            const response = await fetch(`${baseURL}/chats`, {
+                headers: {
+                    'Content-Type': 'application/json',  // Fixed typo here
+                    'Authorization': `Bearer ${user?.access_token as string}`
+                }
+            })
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             const fetchedChats: MessageResponse[] = await response.json();
             dispatch(setChat(fetchedChats))
+
         } catch (e) {
             throw Error(`Something happened: ${e}`)
         }
@@ -52,62 +51,58 @@ const SideMenu: React.FC<SideMenuProps> = ({ selectedLLM, handleSelectedLLM, isO
     }
 
     return (
-        <div className={`fixed inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out bg-gray-800 text-white w-64 z-50`}>
-            <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="p-4 border-b border-gray-700">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold">Chats</h2>
-                        <button onClick={toggleMenu} className="p-2">
-                            <img src={sidebarIcon} alt="sidebar" className="w-6 h-6" />
-                        </button>
-                    </div>
+        <div className={`fixed z-50 h-screen flex p-4 sidebar-transition`}>
+            {/* Collapsed Stripe */}
+            <div className={`h-full  border-r border-[#d9d9d9] transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-12'}`}>
+                {/* Toggle Button - Always visible */}
+                <div className="p-2 cursor-pointer hover:bg-gray-200 transition-colors" onClick={toggleMenu}>
+                    <img
+                        src={sidebarIcon}
+                        alt="Toggle Sidebar"
+                        className="w-8 h-8 float-end"
+                    />
                 </div>
 
-                {/* Model Selection */}
-                <div className="p-4 border-b border-gray-700">
-                    <select
-                        value={selectedLLM}
-                        onChange={handleSelectedLLM}
-                        className="w-full p-2 bg-gray-700 rounded text-white"
-                    >
-                        <option value="LLama3.2">LLama 3.2</option>
-                        <option value="GPT4">GPT-4</option>
-                    </select>
-                </div>
+                {isOpen && (
+                    <nav className="overflow-y-auto h-[calc(100vh-4rem)] pt-4">
+                        <div className="flex-1 overflow-hidden">
+                            {/* LLM Selection */}
+                            <div>
+                                <label>Select LLM Service</label>
+                                <select
+                                    value={selectedChatService}
+                                    onChange={handleSelectedChatService}
+                                    className="bg-white border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 my-2 rounded-md w-full"
+                                >
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                            </div>
 
-                {/* Chat List - Scrollable */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="space-y-2 p-4">
-                        {chat.chat.map((chatItem) => (
-                            <button
-                                key={chatItem.id}
-                                onClick={() => navigate(`/c/${chatItem.id}`)}
-                                className={`w-full text-left p-3 rounded-lg transition-colors duration-200 hover:bg-gray-700
-                                    ${location.pathname === `/c/${chatItem.id}` ? 'bg-gray-700' : 'bg-gray-800'}`}
-                            >
-                                <div className="truncate text-sm">
-                                    {chatItem.title || 'Untitled Chat'}
+                            {/* Scrollable Chat History */}
+                            <div className="mt-4 h-[calc(100vh-200px)]">  {/* Adjusted height calculation */}
+                                <div className='mb-4'>Today</div>
+                                <div className="overflow-y-auto h-full pr-2">  {/* Added scroll container */}
+                                    {chat.chat ? chat.chat.map((m: MessageResponse) => (
+                                        <div
+                                            key={m.id}
+                                            className='p-2 mb-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer text-gray-600 truncate'
+                                            onClick={() => navigate(`/o/chat/${m.id}`)}
+                                        >
+                                            {m?.title || 'Untitled Chat'}
+                                        </div>
+                                    )) : (
+                                        <div className="text-gray-500">No chat history</div>
+                                    )}
                                 </div>
-                                {location.pathname === `/c/${chatItem.id}` && (
-                                    <div className="text-xs text-gray-400 mt-1">
-                                        ID: {chatItem.id}
-                                    </div>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-700">
-                    <button
-                        onClick={logUserOut}
-                        className="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
-                    >
-                        Logout
-                    </button>
-                </div>
+                        {/* Logout Button */}
+                        <div className="text-sm font-bold mb-10 cursor-pointer hover:text-blue-600 mt-10" onClick={logUserOut}>
+                            Log out
+                        </div>
+                    </nav>
+                )}
             </div>
         </div>
     );

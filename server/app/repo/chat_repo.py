@@ -24,7 +24,6 @@ class ChatHistoryRepository:
             )
             db.session.add(chat)
             db.session.commit()
-            logger.info(f"Chat saved successfully for user: {user_id}")
         except Exception as e:
             logger.error(f"Error saving chat: {str(e)}")
             db.session.rollback()
@@ -36,7 +35,6 @@ class ChatHistoryRepository:
         try:
             chat = Chat.query.filter_by(id=chat_id, user_id=user_id).first()
             if not chat:
-                logger.info(f"No chat found with id {chat_id} for user {user_id}")
                 return None
                 
             chat_dict = chat.to_dict()
@@ -49,7 +47,6 @@ class ChatHistoryRepository:
                 except json.JSONDecodeError:
                     logger.error(f"Invalid JSON in messages for chat {chat_id}")
                     chat_dict['messages'] = []
-                    
             return chat_dict
         except Exception as e:
             logger.error(f"Error fetching chat: {str(e)}")
