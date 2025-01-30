@@ -3,15 +3,54 @@
 -- DROP TABLE IF EXISTS users;
 
 
--- CREATE TABLE users (
---     id SERIAL PRIMARY KEY,
---     user_id VARCHAR(255) NOT NULL,
---     display_name VARCHAR(255) NOT NULL,
---     email VARCHAR(255) UNIQUE NOT NULL,
---     access_token VARCHAR(255) NOT NULL,
---     photo_url TEXT
--- );
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    access_token VARCHAR(255) NOT NULL,
+    photo_url TEXT
+);
 
+CREATE TABLE member (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    org_id VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL
+);
 
+CREATE TABLE chat_history (
+    id SERIAL PRIMARY KEY,
+    org_id VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- SELECT * FROM information_schema.tables WHERE table_name = 'users';
+CREATE TABLE organization (
+    id SERIAL PRIMARY KEY,
+    org_id VARCHAR(255) NOT NULL,
+    org_name VARCHAR(255) NOT NULL,
+    org_description TEXT,
+    organization_documents TEXT,
+
+    org_logo TEXT
+);
+
+CREATE TABLE document (
+    id SERIAL PRIMARY KEY,
+    doc_id VARCHAR(255) NOT NULL,
+    doc_name VARCHAR(255) NOT NULL,
+    doc_description TEXT,
+    doc_url TEXT,
+    org_id VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE org_members (
+    id SERIAL PRIMARY KEY,
+    org_id VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL
+);
+
+SELECT * FROM information_schema.tables WHERE table_name = 'users';

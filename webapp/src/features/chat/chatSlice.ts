@@ -14,12 +14,12 @@ export interface MessageResponse {
   user_id?: string
 }
 
-interface MessagState {
+interface MessageState {
   chat: MessageResponse[];
   loading: boolean;
 }
 
-const initialState: MessagState = {
+const initialState: MessageState = {
   chat: [],
   loading: true,
 };

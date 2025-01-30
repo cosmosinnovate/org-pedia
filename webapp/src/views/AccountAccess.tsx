@@ -26,7 +26,7 @@ const AccountAccess = () => {
                 access_token: token
             };
 
-            const response = await fetch(`${baseURL}/auth`, {
+            const response = await fetch(`${baseURL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,13 +41,14 @@ const AccountAccess = () => {
                     id: data.user.id,
                     email: data.user.email,
                     photo_url: data.user.photo_url,
+                    exp: data.user.exp,
                     display_name: data.user.display_name,
                     access_token: data.user.access_token,
                     user_google_id: data.user.user_google_id,
                 }
                 dispatch(setUser(user));
                 localStorage.setItem('access_token', data.access_token as string);
-                navigate("/new", {replace: true});
+                navigate("/", {replace: true});
             } else {
                 console.error('Error during sign-in:', data.error);
             }

@@ -8,96 +8,104 @@ import { AppDispatch, RootState } from '../store';
 import { MessageResponse, setChat } from '../features/chat/chatSlice';
 
 interface SideMenuProps {
-  selectedChatService: 'ollama' | 'bedrock';
-  handleSelectedChatService: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  isOpen: boolean;
-  toggleMenu: () => void;
+    selectedChatService: 'ollama' | 'bedrock';
+    handleSelectedChatService: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+    isOpen: boolean;
+    toggleMenu: () => void;
+    className?: string; // Add className prop
 }
 
 const SideMenu: React.FC<SideMenuProps> = ({ selectedChatService, handleSelectedChatService, isOpen, toggleMenu }) => {
-  const navigate = useNavigate()
-  const dispatch: AppDispatch = useAppDispatch();
-  const { auth: {user}, chat } = useAppSelector((select: RootState) => select)
+    const navigate = useNavigate()
+    const dispatch: AppDispatch = useAppDispatch();
+    const { auth: { user }, chat } = useAppSelector((select: RootState) => select)
 
-  const fetchUserChats = useCallback(async () => {
-    try {
-      const response = await fetch(`${baseURL}/chats`, {
-        headers: {
-          'Content-Type': 'applicaiton/json',
-          'Authorization': `Bearer ${user?.access_token as string}`
+    const fetchUserChats = useCallback(async () => {
+        try {
+            const response = await fetch(`${baseURL}/chats`, {
+                headers: {
+                    'Content-Type': 'application/json',  // Fixed typo here
+                    'Authorization': `Bearer ${user?.access_token as string}`
+                }
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const fetchedChats: MessageResponse[] = await response.json();
+            dispatch(setChat(fetchedChats))
+
+        } catch (e) {
+            throw Error(`Something happened: ${e}`)
         }
-      })
+    }, [dispatch, user?.access_token])
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    useEffect(() => {
+        fetchUserChats()
+    }, [fetchUserChats])
 
-      const fetchedChats: MessageResponse[] = await response.json();
-      console.log(fetchedChats)
-
-      dispatch(setChat(fetchedChats))
-
-    } catch (e) {
-      throw Error(`Something happened: ${e}`)
+    const logUserOut = () => {
+        dispatch(logoutUser())
+        navigate('/')
     }
-  }, [dispatch, user?.access_token])
 
-  useEffect(()=>{
-    fetchUserChats()
-  }, [fetchUserChats])
+    return (
+        <div className={`fixed z-50 h-screen flex p-4 sidebar-transition`}>
+            {/* Collapsed Stripe */}
+            <div className={`h-full  border-r border-[#d9d9d9] transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-12'}`}>
+                {/* Toggle Button - Always visible */}
+                <div className="p-2 cursor-pointer hover:bg-gray-200 transition-colors" onClick={toggleMenu}>
+                    <img
+                        src={sidebarIcon}
+                        alt="Toggle Sidebar"
+                        className="w-8 h-8 float-end"
+                    />
+                </div>
 
-  const logUserOut = () => {
-    dispatch(logoutUser())
-    navigate('/')
-  }
+                {isOpen && (
+                    <nav className="overflow-y-auto h-[calc(100vh-4rem)] pt-4">
+                        <div className="flex-1 overflow-hidden">
+                            {/* LLM Selection */}
+                            <div>
+                                <label>Select LLM Service</label>
+                                <select
+                                    value={selectedChatService}
+                                    onChange={handleSelectedChatService}
+                                    className="bg-white border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 my-2 rounded-md w-full"
+                                >
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                            </div>
 
-  return (
-    <div className="fixed z-50">
-      {/* Sidebar Icon - Always visible */}
-      <div className={`fixed top-0 left-0 ml-4 mt-4  cursor-pointer  ${isOpen ? 'hidden' : 'bock'}`} onClick={toggleMenu}>
-        <img src={sidebarIcon} alt="Sidebar Icon" className="w-8 h-8" />
-      </div>
+                            {/* Scrollable Chat History */}
+                            <div className="mt-4 h-[calc(100vh-200px)]">  {/* Adjusted height calculation */}
+                                <div className='mb-4'>Today</div>
+                                <div className="overflow-y-auto h-full pr-2">  {/* Added scroll container */}
+                                    {chat.chat ? chat.chat.map((m: MessageResponse) => (
+                                        <div
+                                            key={m.id}
+                                            className='p-2 mb-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer text-gray-600 truncate'
+                                            onClick={() => navigate(`/o/chat/${m.id}`)}
+                                        >
+                                            {m?.title || 'Untitled Chat'}
+                                        </div>
+                                    )) : (
+                                        <div className="text-gray-500">No chat history</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-      {/* Sidebar - Visible only on medium screens and above */}
-      <div className={`h-screen pt-4 bg-gray-50 border-r border-[#d9d9d9] transition-all duration-300 ease-in-out flex-shrink-0 ${isOpen ? 'block w-64' : 'hidden'
-        }`}>
-
-        <div className={`top-0 left-0 ml-4   cursor-pointer "`} onClick={toggleMenu}>
-          <img src={sidebarIcon} alt="Sidebar Icon" className="w-8 h-8" />
-        </div>
-
-        {isOpen && (
-          <nav className="flex flex-col p-4 justify-between h-full">
-            <div>
-              <div>
-                <label className=''>Select LLM Service</label>
-                <select
-                  value={selectedChatService}
-                  onChange={handleSelectedChatService}
-                  className="bg-white border border-gray-200 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 my-2 rounded-md w-full"
-                >
-                  {/* <option value="bedrock">Bedrock</option> */}
-                  <option value="ollama">Ollama</option>
-                </select>
-              </div>
-
-              <div className='mt-20'>
-                <div className='mb-4'>Today</div>
-                {chat.chat ? chat.chat.map((m: MessageResponse) => (
-                  <div key={m.id} className='p-2 bg-gray-100 h-1 flex flex-1 text-gray-600 cursor-pointer align-middle justify-start justify-items-center' onClick={() => {
-                    navigate(`/c/${m.id}`)
-                  }}>{m?.title}</div>
-                  )) : <div>Empy chat</div>}
-              </div>
+                        {/* Logout Button */}
+                        <div className="text-sm font-bold mb-10 cursor-pointer hover:text-blue-600 mt-10" onClick={logUserOut}>
+                            Log out
+                        </div>
+                    </nav>
+                )}
             </div>
-
-
-            <div className="text-sm font-bold mb-10 justify-start bottom-0 self-start cursor-pointer" onClick={logUserOut}>Log out</div>
-          </nav>
-        )}
-      </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default SideMenu;

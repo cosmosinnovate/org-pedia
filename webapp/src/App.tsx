@@ -48,7 +48,7 @@ const router = createBrowserRouter([
         )
       },
       {
-        path: "/c/:chatId",
+        path: "/o/chat/:chatId",
         element: (
           <ProtectedRoute allowGuest={false}>
             <ErrorBoundary><MainChat /></ErrorBoundary>

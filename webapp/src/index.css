@@ -34,3 +34,13 @@ body {
   /* Keep the button rounded */
   transition: background-color 0.3s ease;
 }
+
+
+/* Add smooth transitions */
+.sidebar-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+.main-content-transition {
+  transition: margin 0.3s ease-in-out;
+}
